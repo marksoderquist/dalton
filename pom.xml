@@ -14,7 +14,7 @@
 	<groupId>com.parallelsymmetry</groupId>
 	<artifactId>dalton</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
-	<packaging>war</packaging>
+	<packaging>jar</packaging>
 
 	<name>Dalton Weather Reader</name>
 	<description>A weather station reader.</description>
@@ -23,7 +23,7 @@
 	<repositories>
 		<repository>
 			<id>psm</id>
-			<url>http://code.parallelsymmetry.com/repo/psm/software/dalton</url>
+			<url>http://code.parallelsymmetry.com/repo/psm</url>
 		</repository>
 	</repositories>
 
