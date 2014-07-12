@@ -1,4 +1,4 @@
-package com.parallelsymmetry.weather;
+package com.parallelsymmetry.dalton;
 
 import java.io.File;
 import java.util.ArrayList;

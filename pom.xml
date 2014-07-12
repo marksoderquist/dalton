@@ -55,4 +55,63 @@
 
 	</dependencies>
 
+	<build>
+
+		<resources>
+			<resource>
+				<directory>source/main/resources</directory>
+				<filtering>false</filtering>
+				<excludes>
+					<exclude>**/product.xml</exclude>
+				</excludes>
+			</resource>
+			<resource>
+				<directory>source/main/resources</directory>
+				<filtering>true</filtering>
+				<includes>
+					<include>**/product.xml</include>
+				</includes>
+			</resource>
+		</resources>
+
+		<finalName>dalton</finalName>
+
+		<plugins>
+
+			<plugin>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<archive>
+						<manifest>
+							<addClasspath>true</addClasspath>
+							<mainClass>com.parallelsymmetry.dalton.WeatherReader</mainClass>
+							<classpathLayoutType>custom</classpathLayoutType>
+							<customClasspathLayout>$${artifact.artifactId}.$${artifact.extension}</customClasspathLayout>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>default-assembly</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<descriptors>
+								<descriptor>source/main/assembly/bin.xml</descriptor>
+							</descriptors>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+		</plugins>
+	</build>
+
 </project>

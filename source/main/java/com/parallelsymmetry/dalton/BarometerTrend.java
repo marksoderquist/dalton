@@ -1,4 +1,4 @@
-package com.parallelsymmetry.weather;
+package com.parallelsymmetry.dalton;
 
 public enum BarometerTrend {
 	

@@ -3,6 +3,8 @@
         <wb-resource deploy-path="/" source-path="/target/m2e-wtp/web-resources"/>
         <wb-resource deploy-path="/" source-path="/source/main/webapp" tag="defaultRootSource"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/source/main/java"/>
+        <wb-resource deploy-path="/WEB-INF/classes" source-path="/source/test/resources"/>
+        <wb-resource deploy-path="/WEB-INF/classes" source-path="/source/main/resources"/>
         <dependent-module archiveName="utility-2.0.0-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/utility/utility">
             <dependency-type>uses</dependency-type>
         </dependent-module>

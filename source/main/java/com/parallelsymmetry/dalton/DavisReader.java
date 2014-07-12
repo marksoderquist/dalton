@@ -1,4 +1,4 @@
-package com.parallelsymmetry.weather;
+package com.parallelsymmetry.dalton;
 
 import gnu.io.CommPortIdentifier;
 import gnu.io.SerialPort;
@@ -13,11 +13,11 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import javax.measure.DecimalMeasure;
 import javax.measure.unit.NonSI;
 
-import com.parallelsymmetry.utility.Controllable;
 import com.parallelsymmetry.utility.EnumerationIterator;
 import com.parallelsymmetry.utility.IoPump;
 import com.parallelsymmetry.utility.TextUtil;
 import com.parallelsymmetry.utility.ThreadUtil;
+import com.parallelsymmetry.utility.agent.Worker;
 import com.parallelsymmetry.utility.comm.SerialAgent;
 import com.parallelsymmetry.utility.log.Log;
 
@@ -38,23 +38,25 @@ import com.parallelsymmetry.utility.log.Log;
  * 
  * @author mvsoder
  */
-public class DavisReader implements Controllable {
+public class DavisReader extends Worker {
 
-	private boolean console = false;
+	private boolean useConsole = false;
+
+	private String port = "/dev/ttyUSB0";
 
 	private Collection<WeatherDataListener> listeners;
 
 	public DavisReader() {
+		setInterruptOnStop( true );
 		listeners = new CopyOnWriteArraySet<WeatherDataListener>();
 	}
 
-	public void start() {
-		Log.write( "Starting reader..." );
-
+	@Override
+	public void run() {
 		listPortIdentifiers();
 
-		// TODO Store this in a config file.
-		String port = "/dev/ttyUSB0";
+		IoPump reader = null;
+		IoPump console = null;
 
 		try {
 			SerialAgent agent = new SerialAgent( "Davis Reader", port, 19200, SerialPort.DATABITS_8, SerialPort.PARITY_NONE, SerialPort.STOPBITS_1 );
@@ -62,41 +64,24 @@ public class DavisReader implements Controllable {
 			agent.setStopOnException( true );
 			agent.start();
 
-			if( console ) {
-				IoPump reader = new IoPump( agent.getInputStream(), new WatcherOutputStream( System.out ) );
+			if( useConsole ) {
+				reader = new IoPump( agent.getInputStream(), new WatcherOutputStream( System.out ) );
 				reader.start();
 
-				IoPump console = new IoPump( System.in, agent.getOutputStream() );
+				console = new IoPump( System.in, agent.getOutputStream() );
 				console.start();
 			} else {
-				while( true ) {
+				while( isExecutable() ) {
 					getData( agent );
-					ThreadUtil.pause( 3000 );
+					ThreadUtil.pause( 2000 );
 				}
 			}
 		} catch( Exception exception ) {
 			exception.printStackTrace( System.err );
+		} finally {
+			if( reader != null ) reader.stop();
+			if( console != null ) console.stop();
 		}
-
-		//		synchronized( this ) {
-		//			try {
-		//				Log.write( "Waiting for data..." );
-		//				wait();
-		//			} catch( InterruptedException exception ) {
-		//				exception.printStackTrace( System.err );
-		//			}
-		//		}
-
-		Log.write( "Reader stopped!" );
-	}
-
-	@Override
-	public boolean isRunning() {
-		return false;
-	}
-
-	public void stop() {
-
 	}
 
 	public void addWeatherDataListener( WeatherDataListener listener ) {

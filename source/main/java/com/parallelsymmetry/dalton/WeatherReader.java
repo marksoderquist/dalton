@@ -1,4 +1,6 @@
-package com.parallelsymmetry.weather;
+package com.parallelsymmetry.dalton;
+
+import java.util.Set;
 
 import com.parallelsymmetry.service.Service;
 import com.parallelsymmetry.utility.Parameters;
@@ -10,7 +12,7 @@ public class WeatherReader extends Service {
 	private DavisReader reader;
 
 	public static final void main( String[] commands ) {
-		new WeatherReader().start();
+		new WeatherReader().process( commands );
 	}
 
 	public WeatherReader() {

@@ -1,4 +1,4 @@
-package com.parallelsymmetry.weather;
+package com.parallelsymmetry.dalton;
 
 import javax.measure.Measure;
 

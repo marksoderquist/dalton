@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# Dalton Weather Reader install script
+
+DALTON_HOME=/opt/dalton
+DALTON_TEMP=/tmp/dalton
+
+rm -rf $DALTON_TEMP
+unzip $HOME/Downloads/dalton-bin.zip -d /tmp
+
+# Install user scripts.
+if [ ! -e $HOME/bin ]; then
+	mkdir $HOME/bin
+fi
+cp $DALTON_TEMP/bin/install-dalton $HOME/bin
+cp $DALTON_TEMP/bin/dalton $HOME/bin
+chmod a+x $HOME/bin/install-dalton
+chmod a+x $HOME/bin/dalton
+
+# Remove old application installation.
+sudo rm -rf $DALTON_HOME
+
+# Install new application files.
+sudo cp -r $DALTON_TEMP $DALTON_HOME
+sudo chown -R dalton:dalton $DALTON_HOME
+sudo chmod 644 $DALTON_HOME/lib/*
+
+# Install new service script.
+sudo cp $DALTON_HOME/bin/dalton.service /etc/init.d/dalton
+sudo chmod a+x /etc/init.d/dalton
