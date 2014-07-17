@@ -1,7 +1,5 @@
 package com.parallelsymmetry.dalton;
 
-import java.util.Set;
-
 import com.parallelsymmetry.service.Service;
 import com.parallelsymmetry.utility.Parameters;
 
@@ -16,7 +14,7 @@ public class WeatherReader extends Service {
 	}
 
 	public WeatherReader() {
-		station = new WeatherStation();
+		station = new WeatherStation( this );
 		reader = new DavisReader();
 		reader.addWeatherDataListener( station );
 	}

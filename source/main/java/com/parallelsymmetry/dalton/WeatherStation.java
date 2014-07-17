@@ -1,33 +1,34 @@
 package com.parallelsymmetry.dalton;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.util.Date;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.measure.DecimalMeasure;
 import javax.measure.Measure;
+import javax.measure.unit.NonSI;
 
+import com.parallelsymmetry.utility.DateUtil;
+import com.parallelsymmetry.utility.TextUtil;
 import com.parallelsymmetry.utility.log.Log;
 
 public class WeatherStation implements WeatherDataListener {
 
-	//	Log.write( "Bar: ", TextUtil.toPrintableString( buffer, 7, 2 ), " ", bar );
-	//	Log.write( "Bar trend: ", TextUtil.toPrintableString( buffer, 3, 1 ), " ", barTrend.name() );
-	//	Log.write( "Temp in: ", TextUtil.toPrintableString( buffer, 9, 2 ), " ", tempInside );
-	//	Log.write( "Humid in: ", TextUtil.toPrintableString( buffer, 1, 1 ), " ", humidInside + "%" );
-	//	Log.write( "Temp out: ", TextUtil.toPrintableString( buffer, 12, 2 ), " ", tempOutside );
-	//	Log.write( "Wind speed: ", TextUtil.toPrintableString( buffer, 14, 1 ), " ", windSpeed );
-	//	Log.write( "Wind speed 10 min. avg.: ", TextUtil.toPrintableString( buffer, 15, 1 ), " ", windSpeedTenMinAvg );
-	//	Log.write( "Wind direction: ", TextUtil.toPrintableString( buffer, 16, 2 ), " ", windDirection );
-	//
-	//	Log.write( "Humid out: ", TextUtil.toPrintableString( buffer, 33, 1 ), " ", humidOutside );
-	//	Log.write( "Rain rate: ", TextUtil.toPrintableString( buffer, 41, 2 ), " ", rainRate );
+	public static final String WUNDERGROUND_DATE_FORMAT = "yyyy-MM-dd+HH'%3A'mm'%3A'ss";
+
+	private WeatherReader reader;
 
 	private Map<WeatherDatumIdentifier, Measure<?, ?>> data;
 
-	public WeatherStation() {
+	public WeatherStation( WeatherReader reader ) {
+		this.reader = reader;
 		data = new ConcurrentHashMap<WeatherDatumIdentifier, Measure<?, ?>>();
 	}
 
@@ -47,6 +48,25 @@ public class WeatherStation implements WeatherDataListener {
 			data.put( datum.getIdentifier(), datum.getMeasure() );
 		}
 
+		// Calculate dew point.
+		float t = (Float)data.get( WeatherDatumIdentifier.TEMPERATURE ).getValue();
+		float h = (Float)data.get( WeatherDatumIdentifier.HUMIDITY ).getValue();
+		data.put( WeatherDatumIdentifier.DEW_POINT, DecimalMeasure.valueOf( WeatherUtil.calculateDewPoint( t, h ), NonSI.FAHRENHEIT ) );
+
+		try {
+			updateMarkSoderquistNet();
+		} catch( IOException exception ) {
+			Log.write( exception );
+		}
+
+		try {
+			updateWunderground();
+		} catch( IOException exception ) {
+			Log.write( exception );
+		}
+	}
+
+	private int updateMarkSoderquistNet() throws IOException {
 		//http://emerald:8080/weather/station?id=21&ts=2348923&t=42.1&h=57&p=29.92
 		StringBuilder builder = new StringBuilder( "http://emerald:8080/weather/wxstation?id=0" );
 
@@ -55,10 +75,12 @@ public class WeatherStation implements WeatherDataListener {
 
 		builder.append( "&t=" );
 		builder.append( data.get( WeatherDatumIdentifier.TEMPERATURE ).getValue() );
-		builder.append( "&h=" );
-		builder.append( data.get( WeatherDatumIdentifier.HUMIDITY ).getValue() );
 		builder.append( "&p=" );
 		builder.append( data.get( WeatherDatumIdentifier.PRESSURE ).getValue() );
+		builder.append( "&h=" );
+		builder.append( data.get( WeatherDatumIdentifier.HUMIDITY ).getValue() );
+		builder.append( "&dp=" );
+		builder.append( data.get( WeatherDatumIdentifier.DEW_POINT ).getValue() );
 
 		builder.append( "&wd=" );
 		builder.append( data.get( WeatherDatumIdentifier.WIND_DIRECTION ).getValue() );
@@ -73,14 +95,54 @@ public class WeatherStation implements WeatherDataListener {
 		builder.append( data.get( WeatherDatumIdentifier.RAIN_TOTAL_DAILY ).getValue() );
 
 		Log.write( Log.TRACE, builder.toString() );
-		try {
-			sendGet( builder.toString() );
-		} catch( Exception exception ) {
-			Log.write( exception );
-		}
+		Response response = sendGet( builder.toString() );
+		
+		return response.getCode();
 	}
 
-	private int sendGet( String url ) throws Exception {
+	private int updateWunderground() throws IOException {
+		// Example:
+		// http://rtupdate.wunderground.com/weatherstation/updateweatherstation.php?ID=KCASANFR5&PASSWORD=XXXXXX&dateutc=2000-01-01+10%3A32%3A35&winddir=230&windspeedmph=12&windgustmph=12&tempf=70&rainin=0&baromin=29.1&dewptf=68.2&humidity=90&weather=&clouds=&softwaretype=vws%20versionxx&action=updateraw&realtime=1&rtfreq=2.5
+
+		StringBuilder builder = new StringBuilder( "http://rtupdate.wunderground.com/weatherstation/updateweatherstation.php" );
+		builder.append( "?ID=KUTRIVER9" );
+		builder.append( "&PASSWORD=qWest73wun" );
+		builder.append( "&action=updateraw" );
+		builder.append( "&realtime=1&rtfreq=2.5" );
+		builder.append( "&dateutc=" );
+		builder.append( DateUtil.format( new Date(), WeatherStation.WUNDERGROUND_DATE_FORMAT, TimeZone.getTimeZone( "UTC" ) ) );
+		builder.append( "&tempf=" );
+		builder.append( data.get( WeatherDatumIdentifier.TEMPERATURE ).getValue() );
+		builder.append( "&baromin=" );
+		builder.append( data.get( WeatherDatumIdentifier.PRESSURE ).getValue() );
+		builder.append( "&humidity=" );
+		builder.append( data.get( WeatherDatumIdentifier.HUMIDITY ).getValue() );
+		builder.append( "&dewptf=" );
+		builder.append( data.get( WeatherDatumIdentifier.DEW_POINT ).getValue() );
+
+		builder.append( "&winddir=" );
+		builder.append( data.get( WeatherDatumIdentifier.WIND_DIRECTION ).getValue() );
+		builder.append( "&windspeedmph=" );
+		builder.append( data.get( WeatherDatumIdentifier.WIND_SPEED_INSTANT ).getValue() );
+		builder.append( "&windspdmph_avg2m=" );
+		builder.append( data.get( WeatherDatumIdentifier.WIND_SPEED_SUSTAIN ).getValue() );
+
+		builder.append( "&rainin=" );
+		builder.append( data.get( WeatherDatumIdentifier.RAIN_RATE ).getValue() );
+		builder.append( "&dailyrainin=" );
+		builder.append( data.get( WeatherDatumIdentifier.RAIN_TOTAL_DAILY ).getValue() );
+
+		builder.append( "&softwaretype=dalton" );
+		String release = reader.getCard().getRelease().toHumanString( DateUtil.DEFAULT_TIME_ZONE );
+		builder.append( URLEncoder.encode( " " + release, TextUtil.DEFAULT_ENCODING ) );
+
+		Log.write( Log.TRACE, builder.toString() );
+		Response response = sendGet( builder.toString() );
+
+		return response.getCode();
+	}
+
+	private Response sendGet( String url ) throws IOException {
 		String USER_AGENT = "Mozilla/5.0";
 
 		HttpURLConnection connection = (HttpURLConnection)new URL( url ).openConnection();
@@ -92,14 +154,37 @@ public class WeatherStation implements WeatherDataListener {
 
 		// Read the response.
 		String inputLine;
-		StringBuffer response = new StringBuffer();
+		StringBuilder content = new StringBuilder();
 		BufferedReader input = new BufferedReader( new InputStreamReader( connection.getInputStream() ) );
 		while( ( inputLine = input.readLine() ) != null ) {
-			response.append( inputLine );
+			content.append( inputLine );
 		}
 		input.close();
 
-		return responseCode;
+		Response response = new Response( responseCode, content.toString() );
+
+		return response;
+	}
+
+	private class Response {
+
+		private int code;
+
+		private String content;
+
+		public Response( int code, String content ) {
+			this.code = code;
+			this.content = content;
+		}
+
+		public int getCode() {
+			return code;
+		}
+
+		public String getContent() {
+			return content;
+		}
+
 	}
 
 }

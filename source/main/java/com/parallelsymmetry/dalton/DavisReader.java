@@ -45,10 +45,20 @@ public class DavisReader extends Worker {
 	private String port = "/dev/ttyUSB0";
 
 	private Collection<WeatherDataListener> listeners;
+	
+	private int pollInterval = 2500;
 
 	public DavisReader() {
 		setInterruptOnStop( true );
 		listeners = new CopyOnWriteArraySet<WeatherDataListener>();
+	}
+	
+	public int getPollInterval() {
+		return pollInterval;
+	}
+	
+	public void setPollInterval( int pollInterval ) {
+		this.pollInterval = pollInterval;
 	}
 
 	@Override
@@ -73,7 +83,7 @@ public class DavisReader extends Worker {
 			} else {
 				while( isExecutable() ) {
 					getData( agent );
-					ThreadUtil.pause( 2000 );
+					ThreadUtil.pause( pollInterval );
 				}
 			}
 		} catch( Exception exception ) {
