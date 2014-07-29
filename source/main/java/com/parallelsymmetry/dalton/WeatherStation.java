@@ -100,6 +100,15 @@ public class WeatherStation implements WeatherDataListener {
 		return response.getCode();
 	}
 
+	/**
+	 * This method to send data to the Weather Underground was developed using
+	 * instructions from: <a
+	 * href="http://wiki.wunderground.com/index.php/PWS_-_Upload_Protocol"
+	 * >http://wiki.wunderground.com/index.php/PWS_-_Upload_Protocol</a>
+	 * 
+	 * @return
+	 * @throws IOException
+	 */
 	private int updateWunderground() throws IOException {
 		// Example:
 		// http://rtupdate.wunderground.com/weatherstation/updateweatherstation.php?ID=KCASANFR5&PASSWORD=XXXXXX&dateutc=2000-01-01+10%3A32%3A35&winddir=230&windspeedmph=12&windgustmph=12&tempf=70&rainin=0&baromin=29.1&dewptf=68.2&humidity=90&weather=&clouds=&softwaretype=vws%20versionxx&action=updateraw&realtime=1&rtfreq=2.5
@@ -132,8 +141,6 @@ public class WeatherStation implements WeatherDataListener {
 		builder.append( "&winddir=" );
 		builder.append( data.get( WeatherDatumIdentifier.WIND_DIRECTION ).getValue() );
 		builder.append( "&windspeedmph=" );
-		builder.append( data.get( WeatherDatumIdentifier.WIND_SPEED_SUSTAIN ).getValue() );
-		builder.append( "&windspdmph_avg2m=" );
 		builder.append( data.get( WeatherDatumIdentifier.WIND_SPEED_SUSTAIN ).getValue() );
 
 		builder.append( "&rainin=" );
