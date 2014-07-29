@@ -208,7 +208,7 @@ public class DavisReader extends Worker {
 
 		// Daily rain total
 		int rainTotalDailyRaw = getUnsignedByte( buffer[50] ) + ( getUnsignedByte( buffer[51] ) << 8 );
-		float rainTotalDaily = rainTotalDailyRaw == 0x7fff ? Float.NaN : rainTotalDailyRaw;
+		float rainTotalDaily = rainTotalDailyRaw == 0x7fff ? Float.NaN : rainTotalDailyRaw / 100.0f;
 
 		//		Log.write();
 		//		Log.write( "Read: ", TextUtil.toPrintableString( buffer, 0, 99 ) );

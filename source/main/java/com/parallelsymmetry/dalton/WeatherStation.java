@@ -96,13 +96,22 @@ public class WeatherStation implements WeatherDataListener {
 
 		Log.write( Log.TRACE, builder.toString() );
 		Response response = sendGet( builder.toString() );
-		
+
 		return response.getCode();
 	}
 
 	private int updateWunderground() throws IOException {
 		// Example:
 		// http://rtupdate.wunderground.com/weatherstation/updateweatherstation.php?ID=KCASANFR5&PASSWORD=XXXXXX&dateutc=2000-01-01+10%3A32%3A35&winddir=230&windspeedmph=12&windgustmph=12&tempf=70&rainin=0&baromin=29.1&dewptf=68.2&humidity=90&weather=&clouds=&softwaretype=vws%20versionxx&action=updateraw&realtime=1&rtfreq=2.5
+
+		//	winddir - [0-360 instantaneous wind direction]
+		//	windspeedmph - [mph instantaneous wind speed]
+		//	windgustmph - [mph current wind gust, using software specific time period]
+		//	windgustdir - [0-360 using software specific time period]
+		//	windspdmph_avg2m  - [mph 2 minute average wind speed mph]
+		//	winddir_avg2m - [0-360 2 minute average wind direction]
+		//	windgustmph_10m - [mph past 10 minutes wind gust mph ]
+		//	windgustdir_10m - [0-360 past 10 minutes wind gust direction]
 
 		StringBuilder builder = new StringBuilder( "http://rtupdate.wunderground.com/weatherstation/updateweatherstation.php" );
 		builder.append( "?ID=KUTRIVER9" );
@@ -123,7 +132,7 @@ public class WeatherStation implements WeatherDataListener {
 		builder.append( "&winddir=" );
 		builder.append( data.get( WeatherDatumIdentifier.WIND_DIRECTION ).getValue() );
 		builder.append( "&windspeedmph=" );
-		builder.append( data.get( WeatherDatumIdentifier.WIND_SPEED_INSTANT ).getValue() );
+		builder.append( data.get( WeatherDatumIdentifier.WIND_SPEED_SUSTAIN ).getValue() );
 		builder.append( "&windspdmph_avg2m=" );
 		builder.append( data.get( WeatherDatumIdentifier.WIND_SPEED_SUSTAIN ).getValue() );
 
