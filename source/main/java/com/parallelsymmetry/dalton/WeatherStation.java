@@ -6,7 +6,9 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.ArrayDeque;
 import java.util.Date;
+import java.util.Deque;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,10 +28,14 @@ public class WeatherStation implements WeatherDataListener {
 	private WeatherReader reader;
 
 	private Map<WeatherDatumIdentifier, Measure<?, ?>> data;
+	
+	private Deque<Double> twoMinuteWindBuffer;
 
 	public WeatherStation( WeatherReader reader ) {
 		this.reader = reader;
 		data = new ConcurrentHashMap<WeatherDatumIdentifier, Measure<?, ?>>();
+		
+		twoMinuteWindBuffer = new ArrayDeque<Double>(100);
 	}
 
 	public Measure<?, ?> getMeasure( WeatherDatumIdentifier datum ) {
