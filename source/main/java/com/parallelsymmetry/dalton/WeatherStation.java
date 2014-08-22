@@ -6,12 +6,12 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.util.ArrayDeque;
 import java.util.Date;
 import java.util.Deque;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 import javax.measure.DecimalMeasure;
 import javax.measure.Measure;
@@ -20,6 +20,7 @@ import javax.measure.unit.NonSI;
 import com.parallelsymmetry.utility.DateUtil;
 import com.parallelsymmetry.utility.TextUtil;
 import com.parallelsymmetry.utility.log.Log;
+import com.parallelsymmetry.utility.math.Statistics;
 
 public class WeatherStation implements WeatherDataListener {
 
@@ -28,24 +29,27 @@ public class WeatherStation implements WeatherDataListener {
 	private WeatherReader reader;
 
 	private Map<WeatherDatumIdentifier, Measure<?, ?>> data;
-	
-	private Deque<Double> twoMinuteWindBuffer;
+
+	private Deque<WeatherDataEvent> twoMinuteWindBuffer;
+
+	private Deque<WeatherDataEvent> tenMinuteWindBuffer;
 
 	public WeatherStation( WeatherReader reader ) {
 		this.reader = reader;
 		data = new ConcurrentHashMap<WeatherDatumIdentifier, Measure<?, ?>>();
-		
-		twoMinuteWindBuffer = new ArrayDeque<Double>(100);
-	}
 
-	public Measure<?, ?> getMeasure( WeatherDatumIdentifier datum ) {
-		return data.get( datum );
+		twoMinuteWindBuffer = new ConcurrentLinkedDeque<WeatherDataEvent>();
+		tenMinuteWindBuffer = new ConcurrentLinkedDeque<WeatherDataEvent>();
 	}
 
 	public float getTemperature() {
 		Measure<?, ?> measure = getMeasure( WeatherDatumIdentifier.TEMPERATURE );
 		if( measure == null ) return Float.NaN;
 		return ( (Float)measure.getValue() ).floatValue();
+	}
+
+	public Measure<?, ?> getMeasure( WeatherDatumIdentifier datum ) {
+		return data.get( datum );
 	}
 
 	@Override
@@ -59,6 +63,9 @@ public class WeatherStation implements WeatherDataListener {
 		float h = (Float)data.get( WeatherDatumIdentifier.HUMIDITY ).getValue();
 		data.put( WeatherDatumIdentifier.DEW_POINT, DecimalMeasure.valueOf( WeatherUtil.calculateDewPoint( t, h ), NonSI.FAHRENHEIT ) );
 
+		postWindData( event, twoMinuteWindBuffer, 120000 );
+		postWindData( event, tenMinuteWindBuffer, 600000 );
+
 		try {
 			updateMarkSoderquistNet();
 		} catch( IOException exception ) {
@@ -70,6 +77,35 @@ public class WeatherStation implements WeatherDataListener {
 		} catch( IOException exception ) {
 			Log.write( exception );
 		}
+	}
+
+	private void postWindData( WeatherDataEvent event, Deque<WeatherDataEvent> buffer, long timeout ) {
+		buffer.push( event );
+
+		WeatherDataEvent last = buffer.peekLast();
+		while( event.getTimestamp().getTime() - last.getTimestamp().getTime() > timeout ) {
+			buffer.pollLast();
+			last = buffer.peekLast();
+		}
+	}
+
+	private boolean isGust( float wind, Deque<WeatherDataEvent> buffer ) {
+		// Collect the wind data from the buffer.
+		int index = 0;
+		double[] values = new double[buffer.size()];
+		for( WeatherDataEvent event : buffer ) {
+			for( WeatherDatum datum : event.getData() ) {
+				if( WeatherDatumIdentifier.WIND_SPEED_INSTANT == datum.getIdentifier() ) {
+					values[index] = (Float)datum.getMeasure().getValue();
+					index++;
+				}
+			}
+		}
+
+		// Calculate the wind average.
+		double mean = Statistics.mean( values );
+
+		return wind - mean > 10;
 	}
 
 	private int updateMarkSoderquistNet() throws IOException {
@@ -148,6 +184,15 @@ public class WeatherStation implements WeatherDataListener {
 		builder.append( data.get( WeatherDatumIdentifier.WIND_DIRECTION ).getValue() );
 		builder.append( "&windspeedmph=" );
 		builder.append( data.get( WeatherDatumIdentifier.WIND_SPEED_SUSTAIN ).getValue() );
+
+		// Calculate wind data.
+		float w = (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_INSTANT ).getValue();
+		if( isGust( w, tenMinuteWindBuffer ) ) {
+			builder.append( "&windgustmph=" );
+			builder.append( w );
+			builder.append( "&windgustdir=" );
+			builder.append( data.get( WeatherDatumIdentifier.WIND_DIRECTION ).getValue() );
+		}
 
 		builder.append( "&rainin=" );
 		builder.append( data.get( WeatherDatumIdentifier.RAIN_RATE ).getValue() );
