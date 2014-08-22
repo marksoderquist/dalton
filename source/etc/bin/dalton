@@ -1,1 +1,1 @@
-sudo su - dalton -c "java -Djava.library.path=/usr/lib/jni -jar /opt/dalton/lib/dalton.jar \"$@\""
+sudo su - dalton -c "java -Djava.library.path=/usr/lib/jni -jar /opt/dalton/lib/dalton.jar $*"
