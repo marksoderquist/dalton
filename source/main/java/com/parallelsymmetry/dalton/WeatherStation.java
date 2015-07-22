@@ -109,8 +109,8 @@ public class WeatherStation implements WeatherDataListener {
 	}
 
 	private int updateMarkSoderquistNet() throws IOException {
-		//http://emerald:8080/weather/station?id=21&ts=2348923&t=42.1&h=57&p=29.92
-		StringBuilder builder = new StringBuilder( "http://emerald:8080/weather/wxstation?id=0" );
+		//http://ruby:8080/weather/station?id=21&ts=2348923&t=42.1&h=57&p=29.92
+		StringBuilder builder = new StringBuilder( "http://ruby:8080/weather/wxstation?id=0" );
 
 		builder.append( "&ts=" );
 		builder.append( System.currentTimeMillis() );
