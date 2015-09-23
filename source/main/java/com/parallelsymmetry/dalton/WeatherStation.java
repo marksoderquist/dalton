@@ -144,9 +144,9 @@ public class WeatherStation implements WeatherDataListener {
 
 	/**
 	 * This method to send data to the Weather Underground was developed using
-	 * instructions from: <a
-	 * href="http://wiki.wunderground.com/index.php/PWS_-_Upload_Protocol"
-	 * >http://wiki.wunderground.com/index.php/PWS_-_Upload_Protocol</a>
+	 * instructions from:
+	 * <a href="http://wiki.wunderground.com/index.php/PWS_-_Upload_Protocol" >
+	 * http://wiki.wunderground.com/index.php/PWS_-_Upload_Protocol</a>
 	 * 
 	 * @return
 	 * @throws IOException
@@ -216,21 +216,23 @@ public class WeatherStation implements WeatherDataListener {
 		connection.setRequestMethod( "GET" );
 		connection.setRequestProperty( "User-Agent", USER_AGENT );
 
-		// Get the response code.
-		int responseCode = connection.getResponseCode();
+		try {
+			// Get the response code.
+			int responseCode = connection.getResponseCode();
 
-		// Read the response.
-		String inputLine;
-		StringBuilder content = new StringBuilder();
-		BufferedReader input = new BufferedReader( new InputStreamReader( connection.getInputStream() ) );
-		while( ( inputLine = input.readLine() ) != null ) {
-			content.append( inputLine );
+			// Read the response.
+			String inputLine;
+			StringBuilder content = new StringBuilder();
+			BufferedReader input = new BufferedReader( new InputStreamReader( connection.getInputStream() ) );
+			while( ( inputLine = input.readLine() ) != null ) {
+				content.append( inputLine );
+			}
+			input.close();
+
+			return new Response( responseCode, content.toString() );
+		} finally {
+			if( connection != null ) connection.disconnect();
 		}
-		input.close();
-
-		Response response = new Response( responseCode, content.toString() );
-
-		return response;
 	}
 
 	private class Response {
