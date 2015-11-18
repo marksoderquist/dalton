@@ -10,8 +10,4 @@ public class WeatherUtil {
 		return (float)dp;
 	}
 	
-	public static boolean isGust( double currentSpeed, double twoMinuteAverage ) {
-		return false;
-	}
-	
 }

@@ -45,18 +45,18 @@ public class DavisReader extends Worker {
 	private String port = "/dev/ttyUSB0";
 
 	private Collection<WeatherDataListener> listeners;
-	
+
 	private int pollInterval = 2500;
 
 	public DavisReader() {
 		setInterruptOnStop( true );
 		listeners = new CopyOnWriteArraySet<WeatherDataListener>();
 	}
-	
+
 	public int getPollInterval() {
 		return pollInterval;
 	}
-	
+
 	public void setPollInterval( int pollInterval ) {
 		this.pollInterval = pollInterval;
 	}
@@ -73,6 +73,8 @@ public class DavisReader extends Worker {
 			agent.setReconnectDelay( 5000 );
 			agent.setStopOnException( true );
 			agent.start();
+
+			Log.write( Log.INFO, agent.getName(), " running on port ", port );
 
 			if( useConsole ) {
 				reader = new IoPump( agent.getInputStream(), new WatcherOutputStream( System.out ) );
@@ -228,9 +230,11 @@ public class DavisReader extends Worker {
 		WeatherDatum temperatureDatum = new WeatherDatum( WeatherDatumIdentifier.TEMPERATURE, DecimalMeasure.valueOf( tempOutside, NonSI.FAHRENHEIT ) );
 		WeatherDatum pressureDatum = new WeatherDatum( WeatherDatumIdentifier.PRESSURE, DecimalMeasure.valueOf( pressure, NonSI.INCH_OF_MERCURY ) );
 		WeatherDatum humidityDatum = new WeatherDatum( WeatherDatumIdentifier.HUMIDITY, DecimalMeasure.valueOf( humidOutside, NonSI.PERCENT ) );
+
 		WeatherDatum windSpeedDatum = new WeatherDatum( WeatherDatumIdentifier.WIND_SPEED_INSTANT, DecimalMeasure.valueOf( windSpeed, NonSI.MILES_PER_HOUR ) );
-		WeatherDatum windSpeedTenMinAvgDatum = new WeatherDatum( WeatherDatumIdentifier.WIND_SPEED_SUSTAIN, DecimalMeasure.valueOf( windSpeedTenMinAvg, NonSI.MILES_PER_HOUR ) );
 		WeatherDatum windDirectionDatum = new WeatherDatum( WeatherDatumIdentifier.WIND_DIRECTION, DecimalMeasure.valueOf( windDirection, NonSI.DEGREE_ANGLE ) );
+		WeatherDatum windSpeedTenMinAvgDatum = new WeatherDatum( WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG, DecimalMeasure.valueOf( windSpeedTenMinAvg, NonSI.MILES_PER_HOUR ) );
+
 		WeatherDatum rainRateDatum = new WeatherDatum( WeatherDatumIdentifier.RAIN_RATE, DecimalMeasure.valueOf( rainRate, NonSI.INCH.divide( NonSI.HOUR ) ) );
 		WeatherDatum rainTotalDailyDatum = new WeatherDatum( WeatherDatumIdentifier.RAIN_TOTAL_DAILY, DecimalMeasure.valueOf( rainTotalDaily, NonSI.INCH ) );
 

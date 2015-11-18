@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.Deque;
 import java.util.Map;
@@ -58,28 +59,44 @@ public class WeatherStation implements WeatherDataListener {
 			data.put( datum.getIdentifier(), datum.getMeasure() );
 		}
 
-		// Calculate dew point.
-		float t = (Float)data.get( WeatherDatumIdentifier.TEMPERATURE ).getValue();
-		float h = (Float)data.get( WeatherDatumIdentifier.HUMIDITY ).getValue();
-		data.put( WeatherDatumIdentifier.DEW_POINT, DecimalMeasure.valueOf( WeatherUtil.calculateDewPoint( t, h ), NonSI.FAHRENHEIT ) );
+		try {
+			// Calculate dew point.
+			float t = (Float)data.get( WeatherDatumIdentifier.TEMPERATURE ).getValue();
+			float h = (Float)data.get( WeatherDatumIdentifier.HUMIDITY ).getValue();
+			data.put( WeatherDatumIdentifier.DEW_POINT, DecimalMeasure.valueOf( WeatherUtil.calculateDewPoint( t, h ), NonSI.FAHRENHEIT ) );
 
-		postWindData( event, twoMinuteWindBuffer, 120000 );
-		postWindData( event, tenMinuteWindBuffer, 600000 );
+			// TODO Calculate wind chill.
+
+			// TODO Calculate pressure trend.
+			//		WeatherDatum pressureTrendDatum = new WeatherDatum( WeatherDatumIdentifier.PRESSURE_TREND, DecimalMeasure.valueOf( pressureTrend, NonSI.BAR.divide( NonSI.HOUR ) ) );
+
+			//postDataEvent( event, twoMinuteWindBuffer, 120000 );
+			//postDataEvent( event, tenMinuteWindBuffer, 600000 );
+
+			update2MinStatistics( event );
+			update10MinStatistics( event );
+		} catch( Exception exception ) {
+			Log.write( exception );
+		}
+
+		for( WeatherDatumIdentifier identifier : data.keySet() ) {
+			Log.write( Log.DETAIL, identifier, " = ", data.get( identifier ) );
+		}
 
 		try {
 			updateMarkSoderquistNet();
-		} catch( IOException exception ) {
+		} catch( Exception exception ) {
 			Log.write( exception );
 		}
 
 		try {
 			updateWunderground();
-		} catch( IOException exception ) {
+		} catch( Exception exception ) {
 			Log.write( exception );
 		}
 	}
 
-	private void postWindData( WeatherDataEvent event, Deque<WeatherDataEvent> buffer, long timeout ) {
+	private void postDataEvent( WeatherDataEvent event, Deque<WeatherDataEvent> buffer, long timeout ) {
 		buffer.push( event );
 
 		WeatherDataEvent last = buffer.peekLast();
@@ -87,8 +104,73 @@ public class WeatherStation implements WeatherDataListener {
 			buffer.pollLast();
 			last = buffer.peekLast();
 		}
+
 	}
 
+	private void update2MinStatistics( WeatherDataEvent event ) {
+		Deque<WeatherDataEvent> buffer = twoMinuteWindBuffer;
+		postDataEvent( event, buffer, 120000 );
+
+		int windCount = 0;
+		float windMin = Float.MAX_VALUE;
+		float windMax = Float.MIN_VALUE;
+		float windTotal = 0;
+
+		for( WeatherDataEvent bufferEvent : buffer ) {
+			for( WeatherDatum datum : bufferEvent.getData() ) {
+				if( WeatherDatumIdentifier.WIND_SPEED_INSTANT == datum.getIdentifier() ) {
+					windCount++;
+					float value = (Float)datum.getMeasure().getValue();
+					windTotal += value;
+					if( value < windMin ) windMin = value;
+					if( value > windMax ) windMax = value;
+				}
+			}
+		}
+
+		float windAvg = windTotal / windCount;
+
+		data.put( WeatherDatumIdentifier.WIND_SPEED_2_MIN_MIN, DecimalMeasure.valueOf( windMin, NonSI.MILES_PER_HOUR ) );
+		data.put( WeatherDatumIdentifier.WIND_SPEED_2_MIN_AVG, DecimalMeasure.valueOf( windAvg, NonSI.MILES_PER_HOUR ) );
+		data.put( WeatherDatumIdentifier.WIND_SPEED_2_MIN_MAX, DecimalMeasure.valueOf( windMax, NonSI.MILES_PER_HOUR ) );
+	}
+
+	private void update10MinStatistics( WeatherDataEvent event ) {
+		Deque<WeatherDataEvent> buffer = tenMinuteWindBuffer;
+		postDataEvent( event, buffer, 600000 );
+
+		int windCount = 0;
+		float windMin = Float.MAX_VALUE;
+		float windMax = Float.MIN_VALUE;
+		float windTotal = 0;
+
+		for( WeatherDataEvent bufferEvent : buffer ) {
+			for( WeatherDatum datum : bufferEvent.getData() ) {
+				if( WeatherDatumIdentifier.WIND_SPEED_INSTANT == datum.getIdentifier() ) {
+					windCount++;
+					float value = (Float)datum.getMeasure().getValue();
+					windTotal += value;
+					if( value < windMin ) windMin = value;
+					if( value > windMax ) windMax = value;
+				}
+			}
+		}
+
+		float windAvg = windTotal / windCount;
+
+		data.put( WeatherDatumIdentifier.WIND_SPEED_10_MIN_MIN, DecimalMeasure.valueOf( windMin, NonSI.MILES_PER_HOUR ) );
+		data.put( WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG, DecimalMeasure.valueOf( windAvg, NonSI.MILES_PER_HOUR ) );
+		data.put( WeatherDatumIdentifier.WIND_SPEED_10_MIN_MAX, DecimalMeasure.valueOf( windMax, NonSI.MILES_PER_HOUR ) );
+	}
+
+	/**
+	 * Determine if the instantaneous wind velocity is a gust. A gust is a
+	 * velocity greater than 10 MPH above the mean velocity.
+	 * 
+	 * @param wind
+	 * @param buffer
+	 * @return
+	 */
 	private boolean isGust( float wind, Deque<WeatherDataEvent> buffer ) {
 		// Collect the wind data from the buffer.
 		int index = 0;
@@ -109,7 +191,6 @@ public class WeatherStation implements WeatherDataListener {
 	}
 
 	private int updateMarkSoderquistNet() throws IOException {
-		//http://ruby:8080/weather/station?id=21&ts=2348923&t=42.1&h=57&p=29.92
 		StringBuilder builder = new StringBuilder( "http://ruby:8080/weather/wxstation?id=0" );
 
 		builder.append( "&ts=" );
@@ -128,8 +209,13 @@ public class WeatherStation implements WeatherDataListener {
 		builder.append( data.get( WeatherDatumIdentifier.WIND_DIRECTION ).getValue() );
 		builder.append( "&wi=" );
 		builder.append( data.get( WeatherDatumIdentifier.WIND_SPEED_INSTANT ).getValue() );
-		builder.append( "&ws=" );
-		builder.append( data.get( WeatherDatumIdentifier.WIND_SPEED_SUSTAIN ).getValue() );
+
+		add( builder, WeatherDatumIdentifier.WIND_SPEED_2_MIN_MIN, "wmin2", "0.0" );
+		add( builder, WeatherDatumIdentifier.WIND_SPEED_2_MIN_AVG, "wavg2", "0.0" );
+		add( builder, WeatherDatumIdentifier.WIND_SPEED_2_MIN_MAX, "wmax2", "0.0" );
+		add( builder, WeatherDatumIdentifier.WIND_SPEED_10_MIN_MIN, "wmin10", "0.0" );
+		add( builder, WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG, "wavg10", "0.0" );
+		add( builder, WeatherDatumIdentifier.WIND_SPEED_10_MIN_MAX, "wmax10", "0.0" );
 
 		builder.append( "&rr=" );
 		builder.append( data.get( WeatherDatumIdentifier.RAIN_RATE ).getValue() );
@@ -137,9 +223,24 @@ public class WeatherStation implements WeatherDataListener {
 		builder.append( data.get( WeatherDatumIdentifier.RAIN_TOTAL_DAILY ).getValue() );
 
 		Log.write( Log.TRACE, builder.toString() );
-		Response response = sendGet( builder.toString() );
+		Response response = rest( "GET", builder.toString() );
 
 		return response.getCode();
+	}
+
+	private void add( StringBuilder builder, WeatherDatumIdentifier identifier, String key, String format ) {
+		Measure<?, ?> measure = data.get( identifier );
+		if( measure == null ) return;
+
+		builder.append( "&" );
+		builder.append( key );
+		builder.append( "=" );
+		if( format == null ) {
+			builder.append( measure.getValue() );
+		} else {
+			DecimalFormat formatter = new DecimalFormat( format );
+			builder.append( formatter.format( measure.getValue() ) );
+		}
 	}
 
 	/**
@@ -183,7 +284,7 @@ public class WeatherStation implements WeatherDataListener {
 		builder.append( "&winddir=" );
 		builder.append( data.get( WeatherDatumIdentifier.WIND_DIRECTION ).getValue() );
 		builder.append( "&windspeedmph=" );
-		builder.append( data.get( WeatherDatumIdentifier.WIND_SPEED_SUSTAIN ).getValue() );
+		builder.append( data.get( WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG ).getValue() );
 
 		// Calculate wind data.
 		float w = (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_INSTANT ).getValue();
@@ -204,16 +305,16 @@ public class WeatherStation implements WeatherDataListener {
 		builder.append( URLEncoder.encode( " " + release, TextUtil.DEFAULT_ENCODING ) );
 
 		Log.write( Log.TRACE, builder.toString() );
-		Response response = sendGet( builder.toString() );
+		Response response = rest( "GET", builder.toString() );
 
 		return response.getCode();
 	}
 
-	private Response sendGet( String url ) throws IOException {
+	private Response rest( String method, String url ) throws IOException {
 		String USER_AGENT = "Mozilla/5.0";
 
 		HttpURLConnection connection = (HttpURLConnection)new URL( url ).openConnection();
-		connection.setRequestMethod( "GET" );
+		connection.setRequestMethod( method );
 		connection.setRequestProperty( "User-Agent", USER_AGENT );
 
 		try {
