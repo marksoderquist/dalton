@@ -9,5 +9,17 @@ public class WeatherUtil {
 		double dp = ( c * g ) / ( b - g );
 		return (float)dp;
 	}
-	
+
+	public static float calculateWindChill( float t, float w ) {
+		if( w < 50 ) return 35.74f
+			+ 0.6215f * t
+			- 35.75f * (float)Math.pow( w, 0.16 )
+			+ 0.4275f * t * (float)Math.pow( w, 0.16 );
+		return t;
+	}
+
+	public static float calculateHeatIndex( float t, float h ) {
+		return t;
+	}
+
 }

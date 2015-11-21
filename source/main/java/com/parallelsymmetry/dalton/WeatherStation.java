@@ -34,16 +34,19 @@ public class WeatherStation implements WeatherDataListener {
 
 	private Map<WeatherDatumIdentifier, Measure<?, ?>> data;
 
-	private Deque<WeatherDataEvent> twoMinuteWindBuffer;
+	private Deque<WeatherDataEvent> twoMinuteBuffer;
 
-	private Deque<WeatherDataEvent> tenMinuteWindBuffer;
+	private Deque<WeatherDataEvent> tenMinuteBuffer;
+
+	private Deque<WeatherDataEvent> threeHourBuffer;
 
 	public WeatherStation( WeatherReader reader ) {
 		this.reader = reader;
 		data = new ConcurrentHashMap<WeatherDatumIdentifier, Measure<?, ?>>();
 
-		twoMinuteWindBuffer = new ConcurrentLinkedDeque<WeatherDataEvent>();
-		tenMinuteWindBuffer = new ConcurrentLinkedDeque<WeatherDataEvent>();
+		twoMinuteBuffer = new ConcurrentLinkedDeque<WeatherDataEvent>();
+		tenMinuteBuffer = new ConcurrentLinkedDeque<WeatherDataEvent>();
+		threeHourBuffer = new ConcurrentLinkedDeque<WeatherDataEvent>();
 	}
 
 	public float getTemperature() {
@@ -63,21 +66,21 @@ public class WeatherStation implements WeatherDataListener {
 		}
 
 		try {
-			// Calculate dew point.
 			float t = (Float)data.get( WeatherDatumIdentifier.TEMPERATURE ).getValue();
 			float h = (Float)data.get( WeatherDatumIdentifier.HUMIDITY ).getValue();
+			float w = (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_CURRENT ).getValue();
+
+			// Calculate dew point.
 			data.put( WeatherDatumIdentifier.DEW_POINT, DecimalMeasure.valueOf( WeatherUtil.calculateDewPoint( t, h ), NonSI.FAHRENHEIT ) );
 
 			// TODO Calculate wind chill.
+			data.put( WeatherDatumIdentifier.WIND_CHILL, DecimalMeasure.valueOf( WeatherUtil.calculateWindChill( t, w ), NonSI.FAHRENHEIT ) );
 
-			// TODO Calculate pressure trend.
-			//		WeatherDatum pressureTrendDatum = new WeatherDatum( WeatherDatumIdentifier.PRESSURE_TREND, DecimalMeasure.valueOf( pressureTrend, NonSI.BAR.divide( NonSI.HOUR ) ) );
-
-			//postDataEvent( event, twoMinuteWindBuffer, 120000 );
-			//postDataEvent( event, tenMinuteWindBuffer, 600000 );
+			// TODO Calculate heat index.
 
 			update2MinStatistics( event );
 			update10MinStatistics( event );
+			update3HourStatistics( event );
 		} catch( Exception exception ) {
 			Log.write( exception );
 		}
@@ -111,7 +114,7 @@ public class WeatherStation implements WeatherDataListener {
 	}
 
 	private void update2MinStatistics( WeatherDataEvent event ) {
-		Deque<WeatherDataEvent> buffer = twoMinuteWindBuffer;
+		Deque<WeatherDataEvent> buffer = twoMinuteBuffer;
 		postDataEvent( event, buffer, 120000 );
 
 		int windCount = 0;
@@ -139,7 +142,7 @@ public class WeatherStation implements WeatherDataListener {
 	}
 
 	private void update10MinStatistics( WeatherDataEvent event ) {
-		Deque<WeatherDataEvent> buffer = tenMinuteWindBuffer;
+		Deque<WeatherDataEvent> buffer = tenMinuteBuffer;
 		postDataEvent( event, buffer, 600000 );
 
 		int windCount = 0;
@@ -164,6 +167,26 @@ public class WeatherStation implements WeatherDataListener {
 		data.put( WeatherDatumIdentifier.WIND_SPEED_10_MIN_MIN, DecimalMeasure.valueOf( windMin, NonSI.MILES_PER_HOUR ) );
 		data.put( WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG, DecimalMeasure.valueOf( windAvg, NonSI.MILES_PER_HOUR ) );
 		data.put( WeatherDatumIdentifier.WIND_SPEED_10_MIN_MAX, DecimalMeasure.valueOf( windMax, NonSI.MILES_PER_HOUR ) );
+	}
+
+	private void update3HourStatistics( WeatherDataEvent event ) {
+		Deque<WeatherDataEvent> buffer = threeHourBuffer;
+		postDataEvent( event, buffer, 10800000 );
+
+		float trend = 0;
+		if( buffer.size() >= 2 ) {
+			float first = getValue( buffer.peekFirst(), WeatherDatumIdentifier.PRESSURE );
+			float last = getValue( buffer.peekLast(), WeatherDatumIdentifier.PRESSURE );
+			trend = ( last - first ) / 3f;
+		}
+		data.put( WeatherDatumIdentifier.PRESSURE_TREND, DecimalMeasure.valueOf( trend, NonSI.INCH_OF_MERCURY.divide( NonSI.HOUR ) ) );
+	}
+
+	private float getValue( WeatherDataEvent event, WeatherDatumIdentifier identifier ) {
+		for( WeatherDatum datum : event.getData() ) {
+			if( datum.getIdentifier() == identifier ) return (Float)datum.getMeasure().getValue();
+		}
+		return Float.NaN;
 	}
 
 	/**
@@ -204,6 +227,9 @@ public class WeatherStation implements WeatherDataListener {
 
 		// Prepare derived values.
 		fields.put( "dew-point", format( WeatherDatumIdentifier.DEW_POINT, "0.0" ) );
+		fields.put( "wind-chill", format( WeatherDatumIdentifier.WIND_CHILL, "0.0" ) );
+		//fields.put( "heat-index", format( WeatherDatumIdentifier.HEAT_INDEX, "0.0" ) );
+		fields.put( "pressure-trend", format( WeatherDatumIdentifier.PRESSURE_TREND, "0.00" ) );
 
 		// Prepare wind values.
 		fields.put( "wind-current", format( WeatherDatumIdentifier.WIND_SPEED_CURRENT, "0" ) );
@@ -269,7 +295,7 @@ public class WeatherStation implements WeatherDataListener {
 
 		// Prepare wind gust data.
 		float w = (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_CURRENT ).getValue();
-		if( isGust( w, tenMinuteWindBuffer ) ) {
+		if( isGust( w, tenMinuteBuffer ) ) {
 			add( builder, w, "windgustmph", "0" );
 			add( builder, WeatherDatumIdentifier.WIND_DIRECTION, "windgustdir", "0" );
 		}
@@ -348,7 +374,9 @@ public class WeatherStation implements WeatherDataListener {
 	}
 
 	private String format( WeatherDatumIdentifier identifier, String format ) {
-		return format( (Float)data.get( identifier ).getValue(), format );
+		Measure<?, ?> measure = data.get( identifier );
+		if( measure == null ) return null;
+		return format( (Float)measure.getValue(), format );
 	}
 
 	private String format( float value, String format ) {
