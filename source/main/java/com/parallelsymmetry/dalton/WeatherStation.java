@@ -1,6 +1,7 @@
 package com.parallelsymmetry.dalton;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -9,7 +10,9 @@ import java.net.URLEncoder;
 import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -84,13 +87,13 @@ public class WeatherStation implements WeatherDataListener {
 		}
 
 		try {
-			updateMarkSoderquistNet();
+			updateWunderground();
 		} catch( Exception exception ) {
 			Log.write( exception );
 		}
 
 		try {
-			updateWunderground();
+			updateMarkSoderquistNet();
 		} catch( Exception exception ) {
 			Log.write( exception );
 		}
@@ -118,7 +121,7 @@ public class WeatherStation implements WeatherDataListener {
 
 		for( WeatherDataEvent bufferEvent : buffer ) {
 			for( WeatherDatum datum : bufferEvent.getData() ) {
-				if( WeatherDatumIdentifier.WIND_SPEED_INSTANT == datum.getIdentifier() ) {
+				if( WeatherDatumIdentifier.WIND_SPEED_CURRENT == datum.getIdentifier() ) {
 					windCount++;
 					float value = (Float)datum.getMeasure().getValue();
 					windTotal += value;
@@ -146,7 +149,7 @@ public class WeatherStation implements WeatherDataListener {
 
 		for( WeatherDataEvent bufferEvent : buffer ) {
 			for( WeatherDatum datum : bufferEvent.getData() ) {
-				if( WeatherDatumIdentifier.WIND_SPEED_INSTANT == datum.getIdentifier() ) {
+				if( WeatherDatumIdentifier.WIND_SPEED_CURRENT == datum.getIdentifier() ) {
 					windCount++;
 					float value = (Float)datum.getMeasure().getValue();
 					windTotal += value;
@@ -177,7 +180,7 @@ public class WeatherStation implements WeatherDataListener {
 		double[] values = new double[buffer.size()];
 		for( WeatherDataEvent event : buffer ) {
 			for( WeatherDatum datum : event.getData() ) {
-				if( WeatherDatumIdentifier.WIND_SPEED_INSTANT == datum.getIdentifier() ) {
+				if( WeatherDatumIdentifier.WIND_SPEED_CURRENT == datum.getIdentifier() ) {
 					values[index] = (Float)datum.getMeasure().getValue();
 					index++;
 				}
@@ -191,56 +194,37 @@ public class WeatherStation implements WeatherDataListener {
 	}
 
 	private int updateMarkSoderquistNet() throws IOException {
-		StringBuilder builder = new StringBuilder( "http://ruby:8080/weather/wxstation?id=0" );
+		Map<String, String> fields = new HashMap<>();
+		fields.put( "timestamp", String.valueOf( System.currentTimeMillis() ) );
 
-		builder.append( "&ts=" );
-		builder.append( System.currentTimeMillis() );
+		// Prepare basic values.
+		fields.put( "temperature", format( WeatherDatumIdentifier.TEMPERATURE, "0.0" ) );
+		fields.put( "pressure", format( WeatherDatumIdentifier.PRESSURE, "0.00" ) );
+		fields.put( "humidity", format( WeatherDatumIdentifier.HUMIDITY, "0" ) );
 
-		builder.append( "&t=" );
-		builder.append( data.get( WeatherDatumIdentifier.TEMPERATURE ).getValue() );
-		builder.append( "&p=" );
-		builder.append( data.get( WeatherDatumIdentifier.PRESSURE ).getValue() );
-		builder.append( "&h=" );
-		builder.append( data.get( WeatherDatumIdentifier.HUMIDITY ).getValue() );
-		builder.append( "&dp=" );
-		builder.append( data.get( WeatherDatumIdentifier.DEW_POINT ).getValue() );
+		// Prepare derived values.
+		fields.put( "dew-point", format( WeatherDatumIdentifier.DEW_POINT, "0.0" ) );
 
-		builder.append( "&wd=" );
-		builder.append( data.get( WeatherDatumIdentifier.WIND_DIRECTION ).getValue() );
-		builder.append( "&wi=" );
-		builder.append( data.get( WeatherDatumIdentifier.WIND_SPEED_INSTANT ).getValue() );
+		// Prepare wind values.
+		fields.put( "wind-current", format( WeatherDatumIdentifier.WIND_SPEED_CURRENT, "0" ) );
+		fields.put( "wind-direction", format( WeatherDatumIdentifier.WIND_DIRECTION, "0" ) );
+		fields.put( "wind-10-min-max", format( WeatherDatumIdentifier.WIND_SPEED_10_MIN_MAX, "0" ) );
+		fields.put( "wind-10-min-avg", format( WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG, "0.0" ) );
+		fields.put( "wind-10-min-min", format( WeatherDatumIdentifier.WIND_SPEED_10_MIN_MIN, "0" ) );
+		fields.put( "wind-2-min-max", format( WeatherDatumIdentifier.WIND_SPEED_2_MIN_MAX, "0" ) );
+		fields.put( "wind-2-min-avg", format( WeatherDatumIdentifier.WIND_SPEED_2_MIN_AVG, "0.0" ) );
+		fields.put( "wind-2-min-min", format( WeatherDatumIdentifier.WIND_SPEED_2_MIN_MIN, "0" ) );
 
-		add( builder, WeatherDatumIdentifier.WIND_SPEED_2_MIN_MIN, "wmin2", "0.0" );
-		add( builder, WeatherDatumIdentifier.WIND_SPEED_2_MIN_AVG, "wavg2", "0.0" );
-		add( builder, WeatherDatumIdentifier.WIND_SPEED_2_MIN_MAX, "wmax2", "0.0" );
-		add( builder, WeatherDatumIdentifier.WIND_SPEED_10_MIN_MIN, "wmin10", "0.0" );
-		add( builder, WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG, "wavg10", "0.0" );
-		add( builder, WeatherDatumIdentifier.WIND_SPEED_10_MIN_MAX, "wmax10", "0.0" );
+		// Prepare rain values.
+		fields.put( "rain-total-daily", format( WeatherDatumIdentifier.RAIN_TOTAL_DAILY, "0.00" ) );
+		fields.put( "rain-rate", format( WeatherDatumIdentifier.RAIN_RATE, "0.00" ) );
 
-		builder.append( "&rr=" );
-		builder.append( data.get( WeatherDatumIdentifier.RAIN_RATE ).getValue() );
-		builder.append( "&rd=" );
-		builder.append( data.get( WeatherDatumIdentifier.RAIN_TOTAL_DAILY ).getValue() );
+		Properties properties = new Properties();
+		properties.putAll( fields );
+		ByteArrayOutputStream output = new ByteArrayOutputStream();
+		properties.store( output, null );
 
-		Log.write( Log.TRACE, builder.toString() );
-		Response response = rest( "GET", builder.toString() );
-
-		return response.getCode();
-	}
-
-	private void add( StringBuilder builder, WeatherDatumIdentifier identifier, String key, String format ) {
-		Measure<?, ?> measure = data.get( identifier );
-		if( measure == null ) return;
-
-		builder.append( "&" );
-		builder.append( key );
-		builder.append( "=" );
-		if( format == null ) {
-			builder.append( measure.getValue() );
-		} else {
-			DecimalFormat formatter = new DecimalFormat( format );
-			builder.append( formatter.format( measure.getValue() ) );
-		}
+		return rest( "PUT", "http://ruby:8080/weather/wxstation", output.toByteArray() ).getCode();
 	}
 
 	/**
@@ -272,34 +256,29 @@ public class WeatherStation implements WeatherDataListener {
 		builder.append( "&realtime=1&rtfreq=2.5" );
 		builder.append( "&dateutc=" );
 		builder.append( DateUtil.format( new Date(), WeatherStation.WUNDERGROUND_DATE_FORMAT, TimeZone.getTimeZone( "UTC" ) ) );
-		builder.append( "&tempf=" );
-		builder.append( data.get( WeatherDatumIdentifier.TEMPERATURE ).getValue() );
-		builder.append( "&baromin=" );
-		builder.append( data.get( WeatherDatumIdentifier.PRESSURE ).getValue() );
-		builder.append( "&humidity=" );
-		builder.append( data.get( WeatherDatumIdentifier.HUMIDITY ).getValue() );
-		builder.append( "&dewptf=" );
-		builder.append( data.get( WeatherDatumIdentifier.DEW_POINT ).getValue() );
 
-		builder.append( "&winddir=" );
-		builder.append( data.get( WeatherDatumIdentifier.WIND_DIRECTION ).getValue() );
-		builder.append( "&windspeedmph=" );
-		builder.append( data.get( WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG ).getValue() );
+		// Prepare basic data.
+		add( builder, WeatherDatumIdentifier.TEMPERATURE, "tempf", "0.0" );
+		add( builder, WeatherDatumIdentifier.PRESSURE, "baromin", "0.00" );
+		add( builder, WeatherDatumIdentifier.HUMIDITY, "humidity", "0" );
+		add( builder, WeatherDatumIdentifier.DEW_POINT, "dewptf", "0.0" );
 
-		// Calculate wind data.
-		float w = (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_INSTANT ).getValue();
+		// Prepare wind data.
+		add( builder, WeatherDatumIdentifier.WIND_DIRECTION, "winddir", "0" );
+		add( builder, WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG, "windspeedmph", "0.0" );
+
+		// Prepare wind gust data.
+		float w = (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_CURRENT ).getValue();
 		if( isGust( w, tenMinuteWindBuffer ) ) {
-			builder.append( "&windgustmph=" );
-			builder.append( w );
-			builder.append( "&windgustdir=" );
-			builder.append( data.get( WeatherDatumIdentifier.WIND_DIRECTION ).getValue() );
+			add( builder, w, "windgustmph", "0" );
+			add( builder, WeatherDatumIdentifier.WIND_DIRECTION, "windgustdir", "0" );
 		}
 
-		builder.append( "&rainin=" );
-		builder.append( data.get( WeatherDatumIdentifier.RAIN_RATE ).getValue() );
-		builder.append( "&dailyrainin=" );
-		builder.append( data.get( WeatherDatumIdentifier.RAIN_TOTAL_DAILY ).getValue() );
+		// Prepare rain data.
+		add( builder, WeatherDatumIdentifier.RAIN_RATE, "rainin", "0.00" );
+		add( builder, WeatherDatumIdentifier.RAIN_TOTAL_DAILY, "dailyrainin", "0.00" );
 
+		// Prepare software data.
 		builder.append( "&softwaretype=dalton" );
 		String release = reader.getCard().getRelease().toHumanString( DateUtil.DEFAULT_TIME_ZONE );
 		builder.append( URLEncoder.encode( " " + release, TextUtil.DEFAULT_ENCODING ) );
@@ -310,30 +289,70 @@ public class WeatherStation implements WeatherDataListener {
 		return response.getCode();
 	}
 
+	private void add( StringBuilder builder, WeatherDatumIdentifier identifier, String key, String format ) {
+		Measure<?, ?> measure = data.get( identifier );
+		if( measure == null ) return;
+		add( builder, (Float)measure.getValue(), key, format );
+	}
+
+	private void add( StringBuilder builder, float value, String key, String format ) {
+		builder.append( "&" );
+		builder.append( key );
+		builder.append( "=" );
+		if( format == null ) {
+			builder.append( value );
+		} else {
+			DecimalFormat formatter = new DecimalFormat( format );
+			builder.append( formatter.format( value ) );
+		}
+	}
+
 	private Response rest( String method, String url ) throws IOException {
+		return rest( method, url, null );
+	}
+
+	private Response rest( String method, String url, byte[] request ) throws IOException {
 		String USER_AGENT = "Mozilla/5.0";
 
+		// Set up the request.
 		HttpURLConnection connection = (HttpURLConnection)new URL( url ).openConnection();
 		connection.setRequestMethod( method );
 		connection.setRequestProperty( "User-Agent", USER_AGENT );
+		if( request != null ) {
+			connection.setDoOutput( true );
+			try {
+				connection.getOutputStream().write( request );
+			} finally {
+				connection.getOutputStream().close();
+			}
+		}
 
+		// Handle the response.
 		try {
 			// Get the response code.
 			int responseCode = connection.getResponseCode();
 
 			// Read the response.
 			String inputLine;
-			StringBuilder content = new StringBuilder();
+			StringBuilder response = new StringBuilder();
 			BufferedReader input = new BufferedReader( new InputStreamReader( connection.getInputStream() ) );
 			while( ( inputLine = input.readLine() ) != null ) {
-				content.append( inputLine );
+				response.append( inputLine );
 			}
 			input.close();
 
-			return new Response( responseCode, content.toString() );
+			return new Response( responseCode, response.toString() );
 		} finally {
 			if( connection != null ) connection.disconnect();
 		}
+	}
+
+	private String format( WeatherDatumIdentifier identifier, String format ) {
+		return format( (Float)data.get( identifier ).getValue(), format );
+	}
+
+	private String format( float value, String format ) {
+		return new DecimalFormat( format ).format( value );
 	}
 
 	private class Response {
