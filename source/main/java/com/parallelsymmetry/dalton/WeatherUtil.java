@@ -11,7 +11,7 @@ public class WeatherUtil {
 	}
 
 	public static float calculateWindChill( float t, float w ) {
-		if( w < 50 ) return 35.74f
+		if( w > 0 && t < 50 ) return 35.74f
 			+ 0.6215f * t
 			- 35.75f * (float)Math.pow( w, 0.16 )
 			+ 0.4275f * t * (float)Math.pow( w, 0.16 );
