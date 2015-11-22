@@ -73,10 +73,11 @@ public class WeatherStation implements WeatherDataListener {
 			// Calculate dew point.
 			data.put( WeatherDatumIdentifier.DEW_POINT, DecimalMeasure.valueOf( WeatherUtil.calculateDewPoint( t, h ), NonSI.FAHRENHEIT ) );
 
-			// TODO Calculate wind chill.
+			// Calculate wind chill.
 			data.put( WeatherDatumIdentifier.WIND_CHILL, DecimalMeasure.valueOf( WeatherUtil.calculateWindChill( t, w ), NonSI.FAHRENHEIT ) );
 
-			// TODO Calculate heat index.
+			// Calculate heat index.
+			data.put( WeatherDatumIdentifier.HEAT_INDEX, DecimalMeasure.valueOf( WeatherUtil.calculateHeatIndex( t, h ), NonSI.FAHRENHEIT ) );
 
 			update2MinStatistics( event );
 			update10MinStatistics( event );
@@ -177,7 +178,7 @@ public class WeatherStation implements WeatherDataListener {
 		if( buffer.size() >= 2 ) {
 			float first = getValue( buffer.peekFirst(), WeatherDatumIdentifier.PRESSURE );
 			float last = getValue( buffer.peekLast(), WeatherDatumIdentifier.PRESSURE );
-			trend = ( last - first ) / 3f;
+			trend = ( first - last ) / 3f;
 		}
 		data.put( WeatherDatumIdentifier.PRESSURE_TREND, DecimalMeasure.valueOf( trend, NonSI.INCH_OF_MERCURY.divide( NonSI.HOUR ) ) );
 	}
@@ -228,7 +229,7 @@ public class WeatherStation implements WeatherDataListener {
 		// Prepare derived values.
 		fields.put( "dew-point", format( WeatherDatumIdentifier.DEW_POINT, "0.0" ) );
 		fields.put( "wind-chill", format( WeatherDatumIdentifier.WIND_CHILL, "0.0" ) );
-		//fields.put( "heat-index", format( WeatherDatumIdentifier.HEAT_INDEX, "0.0" ) );
+		fields.put( "heat-index", format( WeatherDatumIdentifier.HEAT_INDEX, "0.0" ) );
 		fields.put( "pressure-trend", format( WeatherDatumIdentifier.PRESSURE_TREND, "0.00" ) );
 
 		// Prepare wind values.
