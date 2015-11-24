@@ -68,7 +68,7 @@ public class WeatherStation implements WeatherDataListener {
 		try {
 			float t = (Float)data.get( WeatherDatumIdentifier.TEMPERATURE ).getValue();
 			float h = (Float)data.get( WeatherDatumIdentifier.HUMIDITY ).getValue();
-			float w = (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_CURRENT ).getValue();
+			float w = (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG ).getValue();
 
 			// Calculate dew point.
 			data.put( WeatherDatumIdentifier.DEW_POINT, DecimalMeasure.valueOf( WeatherUtil.calculateDewPoint( t, h ), NonSI.FAHRENHEIT ) );
