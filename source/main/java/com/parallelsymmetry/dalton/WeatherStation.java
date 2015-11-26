@@ -21,6 +21,8 @@ import javax.measure.DecimalMeasure;
 import javax.measure.Measure;
 import javax.measure.unit.NonSI;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.parallelsymmetry.utility.DateUtil;
 import com.parallelsymmetry.utility.TextUtil;
 import com.parallelsymmetry.utility.log.Log;
@@ -98,6 +100,12 @@ public class WeatherStation implements WeatherDataListener {
 
 		try {
 			updateMarkSoderquistNet();
+		} catch( Exception exception ) {
+			Log.write( exception );
+		}
+
+		try {
+			updateMarkSoderquistNetWeatherx();
 		} catch( Exception exception ) {
 			Log.write( exception );
 		}
@@ -254,6 +262,41 @@ public class WeatherStation implements WeatherDataListener {
 		return rest( "PUT", "http://ruby:8080/weather/wxstation", output.toByteArray() ).getCode();
 	}
 
+	private int updateMarkSoderquistNetWeatherx() throws IOException {
+		ByteArrayOutputStream stream = new ByteArrayOutputStream();
+
+		JsonGenerator generator = new JsonFactory().createGenerator( stream );
+		generator.writeStartObject();
+		generator.writeNumberField( "timestamp", System.currentTimeMillis() );
+		generator.writeNumberField( "temperature", (Float)data.get( WeatherDatumIdentifier.TEMPERATURE ).getValue() );
+		generator.writeNumberField( "pressure", (Float)data.get( WeatherDatumIdentifier.PRESSURE ).getValue() );
+		generator.writeNumberField( "humidity", (Float)data.get( WeatherDatumIdentifier.HUMIDITY ).getValue() );
+
+		generator.writeNumberField( "dewPoint", (Float)data.get( WeatherDatumIdentifier.DEW_POINT ).getValue() );
+		generator.writeNumberField( "windChill", (Float)data.get( WeatherDatumIdentifier.WIND_CHILL ).getValue() );
+		generator.writeNumberField( "heatIndex", (Float)data.get( WeatherDatumIdentifier.HEAT_INDEX ).getValue() );
+		generator.writeNumberField( "pressureTrend", (Float)data.get( WeatherDatumIdentifier.PRESSURE_TREND ).getValue() );
+
+		generator.writeNumberField( "windDirection", (Float)data.get( WeatherDatumIdentifier.WIND_DIRECTION ).getValue() );
+		generator.writeNumberField( "wind", (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_CURRENT ).getValue() );
+
+		generator.writeNumberField( "windTenMinMax", (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_10_MIN_MAX ).getValue() );
+		generator.writeNumberField( "windTenMinAvg", (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG ).getValue() );
+		generator.writeNumberField( "windTenMinMin", (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_10_MIN_MIN ).getValue() );
+
+		generator.writeNumberField( "windTwoMinMax", (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_2_MIN_MAX ).getValue() );
+		generator.writeNumberField( "windTwoMinAvg", (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_2_MIN_AVG ).getValue() );
+		generator.writeNumberField( "windTwoMinMin", (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_2_MIN_MIN ).getValue() );
+
+		generator.writeEndObject();
+		generator.close();
+
+		Map<String, String> headers = new HashMap<>();
+		headers.put( "content-type", "application/json" );
+
+		return rest( "PUT", "http://ruby:8080/weatherx/station?id=bluewing", headers, stream.toByteArray() ).getCode();
+	}
+
 	/**
 	 * This method to send data to the Weather Underground was developed using
 	 * instructions from:
@@ -339,12 +382,21 @@ public class WeatherStation implements WeatherDataListener {
 	}
 
 	private Response rest( String method, String url, byte[] request ) throws IOException {
+		return rest( method, url, null, request );
+	}
+
+	private Response rest( String method, String url, Map<String, String> headers, byte[] request ) throws IOException {
 		String USER_AGENT = "Mozilla/5.0";
 
 		// Set up the request.
 		HttpURLConnection connection = (HttpURLConnection)new URL( url ).openConnection();
 		connection.setRequestMethod( method );
 		connection.setRequestProperty( "User-Agent", USER_AGENT );
+		if( headers != null ) {
+			for( String key : headers.keySet() ) {
+				connection.setRequestProperty( key, headers.get( key ) );
+			}
+		}
 		if( request != null ) {
 			connection.setDoOutput( true );
 			try {
