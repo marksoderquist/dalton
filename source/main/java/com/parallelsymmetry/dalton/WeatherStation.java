@@ -287,14 +287,19 @@ public class WeatherStation implements WeatherDataListener {
 		generator.writeNumberField( "windTwoMinMax", (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_2_MIN_MAX ).getValue() );
 		generator.writeNumberField( "windTwoMinAvg", (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_2_MIN_AVG ).getValue() );
 		generator.writeNumberField( "windTwoMinMin", (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_2_MIN_MIN ).getValue() );
+		
+		generator.writeNumberField( "rainTotalDaily", (Float)data.get( WeatherDatumIdentifier.RAIN_TOTAL_DAILY ).getValue() );
+		generator.writeNumberField( "rainRate", (Float)data.get( WeatherDatumIdentifier.RAIN_RATE ).getValue() );
 
 		generator.writeEndObject();
 		generator.close();
 
 		Map<String, String> headers = new HashMap<>();
 		headers.put( "content-type", "application/json" );
+		headers.put( "Authorization", "Basic ZGFsdG9uOkRvNUpwTW84ejVoU3hVaTQ=" );
 
-		return rest( "PUT", "http://ruby:8080/weatherx/station?id=bluewing", headers, stream.toByteArray() ).getCode();
+		rest( "PUT", "http://ruby:8080/weatherx/station?id=bluewing", headers, stream.toByteArray() ).getCode();
+		return rest( "PUT", "http://mark.soderquist.net/weatherx/station?id=bluewing", headers, stream.toByteArray() ).getCode();
 	}
 
 	/**
@@ -392,6 +397,7 @@ public class WeatherStation implements WeatherDataListener {
 		HttpURLConnection connection = (HttpURLConnection)new URL( url ).openConnection();
 		connection.setRequestMethod( method );
 		connection.setRequestProperty( "User-Agent", USER_AGENT );
+		connection.setAllowUserInteraction( false );
 		if( headers != null ) {
 			for( String key : headers.keySet() ) {
 				connection.setRequestProperty( key, headers.get( key ) );
