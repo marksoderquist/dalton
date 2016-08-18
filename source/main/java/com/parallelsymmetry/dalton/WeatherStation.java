@@ -344,10 +344,8 @@ public class WeatherStation implements WeatherDataListener {
 
 		// Prepare wind gust data.
 		float w = (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_CURRENT ).getValue();
-		if( isGust( w, tenMinuteBuffer ) ) {
-			add( builder, w, "windgustmph", "0" );
-			add( builder, WeatherDatumIdentifier.WIND_DIRECTION, "windgustdir", "0" );
-		}
+		add( builder, isGust( w, tenMinuteBuffer ) ? w : 0, "windgustmph", "0" );
+		add( builder, WeatherDatumIdentifier.WIND_DIRECTION, "windgustdir", "0" );
 
 		// Prepare rain data.
 		add( builder, WeatherDatumIdentifier.RAIN_RATE, "rainin", "0.00" );
