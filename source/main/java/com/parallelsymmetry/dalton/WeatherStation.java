@@ -8,12 +8,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.text.DecimalFormat;
-import java.util.Date;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-import java.util.TimeZone;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
@@ -26,7 +21,6 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.parallelsymmetry.utility.DateUtil;
 import com.parallelsymmetry.utility.TextUtil;
 import com.parallelsymmetry.utility.log.Log;
-import com.parallelsymmetry.utility.math.Statistics;
 
 public class WeatherStation implements WeatherDataListener {
 
@@ -42,6 +36,8 @@ public class WeatherStation implements WeatherDataListener {
 
 	private Deque<WeatherDataEvent> threeHourBuffer;
 
+	private WeatherUndergroundPublisher weatherUndergroundPublisher;
+
 	public WeatherStation( WeatherReader reader ) {
 		this.reader = reader;
 		data = new ConcurrentHashMap<WeatherDatumIdentifier, Measure<?, ?>>();
@@ -49,6 +45,24 @@ public class WeatherStation implements WeatherDataListener {
 		twoMinuteBuffer = new ConcurrentLinkedDeque<WeatherDataEvent>();
 		tenMinuteBuffer = new ConcurrentLinkedDeque<WeatherDataEvent>();
 		threeHourBuffer = new ConcurrentLinkedDeque<WeatherDataEvent>();
+
+		weatherUndergroundPublisher = new WeatherUndergroundPublisher(reader);
+	}
+
+	public Map<WeatherDatumIdentifier, Measure<?, ?>> getData() {
+		return data;
+	}
+
+	public Deque<WeatherDataEvent> getTwoMinuteBuffer() {
+		return twoMinuteBuffer;
+	}
+
+	public Deque<WeatherDataEvent> getTenMinuteBuffer() {
+		return tenMinuteBuffer;
+	}
+
+	public Deque<WeatherDataEvent> getThreeHourBuffer() {
+		return threeHourBuffer;
 	}
 
 	public float getTemperature() {
@@ -93,7 +107,7 @@ public class WeatherStation implements WeatherDataListener {
 		}
 
 		try {
-			updateWunderground();
+			weatherUndergroundPublisher.publish(data,tenMinuteBuffer);
 		} catch( Exception exception ) {
 			Log.write( exception );
 		}
@@ -191,38 +205,11 @@ public class WeatherStation implements WeatherDataListener {
 		data.put( WeatherDatumIdentifier.PRESSURE_TREND, DecimalMeasure.valueOf( trend, NonSI.INCH_OF_MERCURY.divide( NonSI.HOUR ) ) );
 	}
 
-	private float getValue( WeatherDataEvent event, WeatherDatumIdentifier identifier ) {
+	private static float getValue( WeatherDataEvent event, WeatherDatumIdentifier identifier ) {
 		for( WeatherDatum datum : event.getData() ) {
 			if( datum.getIdentifier() == identifier ) return (Float)datum.getMeasure().getValue();
 		}
 		return Float.NaN;
-	}
-
-	/**
-	 * Determine if the instantaneous wind velocity is a gust. A gust is a
-	 * velocity greater than 10 MPH above the mean velocity.
-	 * 
-	 * @param wind
-	 * @param buffer
-	 * @return
-	 */
-	private boolean isGust( float wind, Deque<WeatherDataEvent> buffer ) {
-		// Collect the wind data from the buffer.
-		int index = 0;
-		double[] values = new double[buffer.size()];
-		for( WeatherDataEvent event : buffer ) {
-			for( WeatherDatum datum : event.getData() ) {
-				if( WeatherDatumIdentifier.WIND_SPEED_CURRENT == datum.getIdentifier() ) {
-					values[index] = (Float)datum.getMeasure().getValue();
-					index++;
-				}
-			}
-		}
-
-		// Calculate the wind average.
-		double mean = Statistics.mean( values );
-
-		return wind - mean > 10;
 	}
 
 	private int updateMarkSoderquistNet() throws IOException {
@@ -344,7 +331,11 @@ public class WeatherStation implements WeatherDataListener {
 
 		// Prepare wind gust data.
 		float w = (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_CURRENT ).getValue();
-		add( builder, isGust( w, tenMinuteBuffer ) ? w : 0, "windgustmph", "0" );
+		if( WeatherUtil.isGust( w, tenMinuteBuffer ) ) {
+			add(builder,  w , "windgustmph", "0");
+		} else {
+			add(builder, WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG, "windgustmph", "0");
+		}
 		add( builder, WeatherDatumIdentifier.WIND_DIRECTION, "windgustdir", "0" );
 
 		// Prepare rain data.

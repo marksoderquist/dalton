@@ -29,6 +29,3 @@ sudo chmod 644 $DALTON_HOME/lib/*
 sudo cp $DALTON_HOME/bin/dalton.service /etc/init.d/dalton
 sudo chmod a+x /etc/init.d/dalton
 sudo systemctl daemon-reload
-
-chmod a+x $HOME/bin/install-dalton
-chmod a+x $HOME/bin/dalton
