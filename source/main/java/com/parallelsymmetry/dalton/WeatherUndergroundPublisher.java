@@ -70,19 +70,18 @@ public class WeatherUndergroundPublisher {
 
         float ws = (Float) data.get(WeatherDatumIdentifier.WIND_SPEED_CURRENT).getValue();
         float wd = (Float) data.get(WeatherDatumIdentifier.WIND_DIRECTION).getValue();
+        if( WeatherUtil.isGust(ws, tenMinuteBuffer) && ws > windGustValue ) {
+            windGustValue = ws;
+            windGustDirection = wd;
+            windGustAvailable = true;
+        }
         if( System.currentTimeMillis() >= windGustTime ) {
             if(windGustAvailable) {
-                windGustTimeReset();
-                windGustAvailable = false;
-                add(builder, ws, "windgustmph", "0");
-                add(builder, wd, "windgustdir", "0");
+                add(builder, windGustValue, "windgustmph", "0");
+                add(builder, windGustDirection, "windgustdir", "0");
             }
-        } else {
-            if( WeatherUtil.isGust(ws, tenMinuteBuffer) && ws > windGustValue) {
-                windGustValue = ws;
-                windGustDirection = wd;
-                windGustAvailable = true;
-            }
+            windGustAvailable = false;
+            windGustTimeReset();
         }
 
         // Prepare rain data.
@@ -101,7 +100,7 @@ public class WeatherUndergroundPublisher {
     }
 
     private long windGustTimeReset() {
-        return System.currentTimeMillis() + 300000;
+        return windGustTime = System.currentTimeMillis() + 300000;
     }
 
     private void add( Map<WeatherDatumIdentifier, Measure<?, ?>> data,StringBuilder builder, WeatherDatumIdentifier identifier, String key, String format ) {
