@@ -80,9 +80,9 @@ public class WeatherUndergroundPublisher {
 //            windGustTimeReset();
 //        }
 
-        float wa = (Float) data.get(WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG).getValue();
-        float ws = (Float) data.get(WeatherDatumIdentifier.WIND_SPEED_10_MIN_MAX).getValue();
-        if (ws - wa > 10) add(builder, windGustValue, "windgustmph", "0");
+        float wa = (Float) data.get(WeatherDatumIdentifier.WIND_SPEED_5_MIN_AVG).getValue();
+        float ws = (Float) data.get(WeatherDatumIdentifier.WIND_SPEED_5_MIN_MAX).getValue();
+        if (ws - wa > 10) add(builder, ws, "windgustmph", "0");
 
         // Prepare rain data.
         add(data, builder, WeatherDatumIdentifier.RAIN_RATE, "rainin", "0.00");

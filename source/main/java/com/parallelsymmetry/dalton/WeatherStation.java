@@ -1,5 +1,14 @@
 package com.parallelsymmetry.dalton;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.parallelsymmetry.utility.DateUtil;
+import com.parallelsymmetry.utility.TextUtil;
+import com.parallelsymmetry.utility.log.Log;
+
+import javax.measure.DecimalMeasure;
+import javax.measure.Measure;
+import javax.measure.unit.NonSI;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -12,16 +21,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
-import javax.measure.DecimalMeasure;
-import javax.measure.Measure;
-import javax.measure.unit.NonSI;
-
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.parallelsymmetry.utility.DateUtil;
-import com.parallelsymmetry.utility.TextUtil;
-import com.parallelsymmetry.utility.log.Log;
-
 public class WeatherStation implements WeatherDataListener {
 
 	public static final String WUNDERGROUND_DATE_FORMAT = "yyyy-MM-dd+HH'%3A'mm'%3A'ss";
@@ -31,6 +30,8 @@ public class WeatherStation implements WeatherDataListener {
 	private Map<WeatherDatumIdentifier, Measure<?, ?>> data;
 
 	private Deque<WeatherDataEvent> twoMinuteBuffer;
+
+	private Deque<WeatherDataEvent> fiveMinuteBuffer;
 
 	private Deque<WeatherDataEvent> tenMinuteBuffer;
 
@@ -43,6 +44,7 @@ public class WeatherStation implements WeatherDataListener {
 		data = new ConcurrentHashMap<WeatherDatumIdentifier, Measure<?, ?>>();
 
 		twoMinuteBuffer = new ConcurrentLinkedDeque<WeatherDataEvent>();
+		fiveMinuteBuffer = new ConcurrentLinkedDeque<WeatherDataEvent>();
 		tenMinuteBuffer = new ConcurrentLinkedDeque<WeatherDataEvent>();
 		threeHourBuffer = new ConcurrentLinkedDeque<WeatherDataEvent>();
 
@@ -55,6 +57,10 @@ public class WeatherStation implements WeatherDataListener {
 
 	public Deque<WeatherDataEvent> getTwoMinuteBuffer() {
 		return twoMinuteBuffer;
+	}
+
+	public Deque<WeatherDataEvent> getFiveMinuteBuffer() {
+		return fiveMinuteBuffer;
 	}
 
 	public Deque<WeatherDataEvent> getTenMinuteBuffer() {
@@ -96,6 +102,7 @@ public class WeatherStation implements WeatherDataListener {
 			data.put( WeatherDatumIdentifier.HEAT_INDEX, DecimalMeasure.valueOf( WeatherUtil.calculateHeatIndex( t, h ), NonSI.FAHRENHEIT ) );
 
 			update2MinStatistics( event );
+			update5MinStatistics( event );
 			update10MinStatistics( event );
 			update3HourStatistics( event );
 		} catch( Exception exception ) {
@@ -162,6 +169,34 @@ public class WeatherStation implements WeatherDataListener {
 		data.put( WeatherDatumIdentifier.WIND_SPEED_2_MIN_MIN, DecimalMeasure.valueOf( windMin, NonSI.MILES_PER_HOUR ) );
 		data.put( WeatherDatumIdentifier.WIND_SPEED_2_MIN_AVG, DecimalMeasure.valueOf( windAvg, NonSI.MILES_PER_HOUR ) );
 		data.put( WeatherDatumIdentifier.WIND_SPEED_2_MIN_MAX, DecimalMeasure.valueOf( windMax, NonSI.MILES_PER_HOUR ) );
+	}
+
+	private void update5MinStatistics( WeatherDataEvent event ) {
+		Deque<WeatherDataEvent> buffer = fiveMinuteBuffer;
+		postDataEvent( event, buffer, 300000 );
+
+		int windCount = 0;
+		float windMin = Float.MAX_VALUE;
+		float windMax = Float.MIN_VALUE;
+		float windTotal = 0;
+
+		for( WeatherDataEvent bufferEvent : buffer ) {
+			for( WeatherDatum datum : bufferEvent.getData() ) {
+				if( WeatherDatumIdentifier.WIND_SPEED_CURRENT == datum.getIdentifier() ) {
+					windCount++;
+					float value = (Float)datum.getMeasure().getValue();
+					windTotal += value;
+					if( value < windMin ) windMin = value;
+					if( value > windMax ) windMax = value;
+				}
+			}
+		}
+
+		float windAvg = windTotal / windCount;
+
+		data.put( WeatherDatumIdentifier.WIND_SPEED_5_MIN_MIN, DecimalMeasure.valueOf( windMin, NonSI.MILES_PER_HOUR ) );
+		data.put( WeatherDatumIdentifier.WIND_SPEED_5_MIN_AVG, DecimalMeasure.valueOf( windAvg, NonSI.MILES_PER_HOUR ) );
+		data.put( WeatherDatumIdentifier.WIND_SPEED_5_MIN_MAX, DecimalMeasure.valueOf( windMax, NonSI.MILES_PER_HOUR ) );
 	}
 
 	private void update10MinStatistics( WeatherDataEvent event ) {
