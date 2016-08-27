@@ -24,17 +24,8 @@ public class WeatherUndergroundPublisher {
 
     private WeatherReader reader;
 
-    private boolean windGustAvailable;
-
-    private long windGustTime;
-
-    private float windGustValue;
-
-    private float windGustDirection;
-
     public WeatherUndergroundPublisher(WeatherReader reader) {
         this.reader = reader;
-        this.windGustTime = windGustTimeReset();
     }
 
     public int publish(Map<WeatherDatumIdentifier, Measure<?, ?>> data, Deque<WeatherDataEvent> tenMinuteBuffer) throws IOException {
@@ -68,18 +59,7 @@ public class WeatherUndergroundPublisher {
         add(data, builder, WeatherDatumIdentifier.WIND_DIRECTION, "winddir", "0");
         add(data, builder, WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG, "windspeedmph", "0.0");
 
-//        float ws = (Float) data.get(WeatherDatumIdentifier.WIND_SPEED_CURRENT).getValue();
-//        float wd = (Float) data.get(WeatherDatumIdentifier.WIND_DIRECTION).getValue();
-//        if( WeatherUtil.isGust(ws, tenMinuteBuffer) && ws > windGustValue ) {
-//            windGustValue = ws;
-//            windGustDirection = wd;
-//            windGustAvailable = true;
-//        }
-//        if( System.currentTimeMillis() >= windGustTime ) {
-//            windGustAvailable = false;
-//            windGustTimeReset();
-//        }
-
+        // Prepare wind gust data.
         float wa = (Float) data.get(WeatherDatumIdentifier.WIND_SPEED_5_MIN_AVG).getValue();
         float ws = (Float) data.get(WeatherDatumIdentifier.WIND_SPEED_5_MIN_MAX).getValue();
         if (ws - wa > 10) add(builder, ws, "windgustmph", "0");
@@ -97,10 +77,6 @@ public class WeatherUndergroundPublisher {
         Response response = rest("GET", builder.toString());
 
         return response.getCode();
-    }
-
-    private long windGustTimeReset() {
-        return windGustTime = System.currentTimeMillis() + 300000;
     }
 
     private void add(Map<WeatherDatumIdentifier, Measure<?, ?>> data, StringBuilder builder, WeatherDatumIdentifier identifier, String key, String format) {
