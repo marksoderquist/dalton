@@ -43,7 +43,8 @@ public class WeatherUndergroundPublisher {
 
         StringBuilder builder = new StringBuilder("http://rtupdate.wunderground.com/weatherstation/updateweatherstation.php");
         builder.append("?ID=KUTRIVER9");
-        builder.append("&PASSWORD=qWest73wun");
+        builder.append("&PASSWORD=effea03f");
+        //         builder.append("&PASSWORD=qWest73wun");
         builder.append("&action=updateraw");
         builder.append("&realtime=1&rtfreq=2.5");
         builder.append("&dateutc=");
