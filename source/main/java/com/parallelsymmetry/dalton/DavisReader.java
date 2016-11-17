@@ -1,18 +1,5 @@
 package com.parallelsymmetry.dalton;
 
-import gnu.io.CommPortIdentifier;
-import gnu.io.SerialPort;
-
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.util.Collection;
-import java.util.concurrent.CopyOnWriteArraySet;
-
-import javax.measure.DecimalMeasure;
-import javax.measure.unit.NonSI;
-
 import com.parallelsymmetry.utility.EnumerationIterator;
 import com.parallelsymmetry.utility.IoPump;
 import com.parallelsymmetry.utility.TextUtil;
@@ -20,6 +7,17 @@ import com.parallelsymmetry.utility.ThreadUtil;
 import com.parallelsymmetry.utility.agent.Worker;
 import com.parallelsymmetry.utility.comm.SerialAgent;
 import com.parallelsymmetry.utility.log.Log;
+import purejavacomm.CommPortIdentifier;
+import purejavacomm.SerialPort;
+
+import javax.measure.DecimalMeasure;
+import javax.measure.unit.NonSI;
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.util.Collection;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * Davis weather station reader. This reader is derived from the <a href=
@@ -35,7 +33,7 @@ import com.parallelsymmetry.utility.log.Log;
  * </ol>
  * On Debian and its derivatives the user should be assigned to the dialout
  * group to have read access to the ports.
- * 
+ *
  * @author mvsoder
  */
 public class DavisReader extends Worker {
@@ -116,7 +114,7 @@ public class DavisReader extends Worker {
 		PrintStream output = new PrintStream( agent.getOutputStream() );
 		output.println( "RECEIVERS" );
 
-		byte[] buffer = new byte[8];
+		byte[] buffer = new byte[ 8 ];
 		BufferedInputStream input = new BufferedInputStream( agent.getInputStream() );
 
 		int read = input.read( buffer );
@@ -126,7 +124,7 @@ public class DavisReader extends Worker {
 			count += read;
 		}
 
-		boolean connected = ( buffer[6] & 1 ) != 0;
+		boolean connected = (buffer[ 6 ] & 1) != 0;
 
 		Log.write();
 		Log.write( "Read: ", TextUtil.toPrintableString( buffer, 0, 7 ) );
@@ -139,7 +137,7 @@ public class DavisReader extends Worker {
 		PrintStream output = new PrintStream( agent.getOutputStream() );
 		output.println( "CLRDATA" );
 
-		byte[] buffer = new byte[8];
+		byte[] buffer = new byte[ 8 ];
 		BufferedInputStream input = new BufferedInputStream( agent.getInputStream() );
 
 		int read = input.read( buffer );
@@ -157,7 +155,7 @@ public class DavisReader extends Worker {
 		PrintStream output = new PrintStream( agent.getOutputStream() );
 		output.println( "LOOP 1" );
 
-		byte[] buffer = new byte[128];
+		byte[] buffer = new byte[ 128 ];
 		BufferedInputStream input = new BufferedInputStream( agent.getInputStream() );
 
 		int read = input.read( buffer );
@@ -170,46 +168,46 @@ public class DavisReader extends Worker {
 		System.arraycopy( buffer, 1, buffer, 0, 99 );
 
 		// Barometer trend
-		BarometerTrend pressureTrend = parseBarometerTrend( buffer[3] );
+		BarometerTrend pressureTrend = parseBarometerTrend( buffer[ 3 ] );
 
 		// Barometer
-		int barRaw = getUnsignedByte( buffer[7] ) + ( getUnsignedByte( buffer[8] ) << 8 );
+		int barRaw = getUnsignedByte( buffer[ 7 ] ) + (getUnsignedByte( buffer[ 8 ] ) << 8);
 		float pressure = barRaw == 0x7fff ? Float.NaN : barRaw / 1000.0f;
 
 		// Inside temperature
-		int tempInsideRaw = getUnsignedByte( buffer[9] ) + ( getUnsignedByte( buffer[10] ) << 8 );
+		int tempInsideRaw = getUnsignedByte( buffer[ 9 ] ) + (getUnsignedByte( buffer[ 10 ] ) << 8);
 		float tempInside = tempInsideRaw == 0x7fff ? Float.NaN : tempInsideRaw / 10.0f;
 
 		// Inside humidity
-		int humidInsideRaw = getUnsignedByte( buffer[11] );
+		int humidInsideRaw = getUnsignedByte( buffer[ 11 ] );
 		float humidInside = humidInsideRaw == 0xff ? Float.NaN : humidInsideRaw;
 
 		// Outside temperature
-		int tempOutsideRaw = getUnsignedByte( buffer[12] ) + ( ( buffer[13] ) << 8 );
+		int tempOutsideRaw = getUnsignedByte( buffer[ 12 ] ) + ((buffer[ 13 ]) << 8);
 		float tempOutside = tempOutsideRaw == 0x7fff ? Float.NaN : tempOutsideRaw / 10.0f;
 
 		// Wind speed
-		int windSpeedRaw = getUnsignedByte( buffer[14] );
+		int windSpeedRaw = getUnsignedByte( buffer[ 14 ] );
 		float windSpeed = windSpeedRaw == 0xff ? Float.NaN : windSpeedRaw;
 
 		// Wind speed 10 minute average
-		int windSpeedTenMinAvgRaw = getUnsignedByte( buffer[15] );
+		int windSpeedTenMinAvgRaw = getUnsignedByte( buffer[ 15 ] );
 		float windSpeedTenMinAvg = windSpeedTenMinAvgRaw == 0xff ? Float.NaN : windSpeedTenMinAvgRaw;
 
 		// Wind direction
-		int windDirectionRaw = getUnsignedByte( buffer[16] ) + ( getUnsignedByte( buffer[17] ) << 8 );
+		int windDirectionRaw = getUnsignedByte( buffer[ 16 ] ) + (getUnsignedByte( buffer[ 17 ] ) << 8);
 		float windDirection = windDirectionRaw == 0x7fff ? Float.NaN : windDirectionRaw;
 
 		// Outside humidity
-		int humidOutsideRaw = getUnsignedByte( buffer[33] );
+		int humidOutsideRaw = getUnsignedByte( buffer[ 33 ] );
 		float humidOutside = humidOutsideRaw == 0xff ? Float.NaN : humidOutsideRaw;
 
 		// Rain rate
-		int rainRateRaw = getUnsignedByte( buffer[41] ) + ( getUnsignedByte( buffer[42] ) << 8 );
+		int rainRateRaw = getUnsignedByte( buffer[ 41 ] ) + (getUnsignedByte( buffer[ 42 ] ) << 8);
 		float rainRate = rainRateRaw == 0xffff ? Float.NaN : rainRateRaw / 100.0f;
 
 		// Daily rain total
-		int rainTotalDailyRaw = getUnsignedByte( buffer[50] ) + ( getUnsignedByte( buffer[51] ) << 8 );
+		int rainTotalDailyRaw = getUnsignedByte( buffer[ 50 ] ) + (getUnsignedByte( buffer[ 51 ] ) << 8);
 		float rainTotalDaily = rainTotalDailyRaw == 0x7fff ? Float.NaN : rainTotalDailyRaw / 100.0f;
 
 		//		Log.write();
