@@ -115,20 +115,20 @@ public class WeatherStation implements WeatherDataListener {
 
 		try {
 			weatherUndergroundPublisher.publish(data,tenMinuteBuffer);
-		} catch( Exception exception ) {
-			Log.write( exception );
+		} catch( Throwable throwable ) {
+			Log.write( throwable );
 		}
 
 		try {
 			updateMarkSoderquistNet();
-		} catch( Exception exception ) {
-			Log.write( exception );
+		} catch( Throwable throwable ) {
+			Log.write( throwable );
 		}
 
 		try {
 			updateMarkSoderquistNetWeatherx();
-		} catch( Exception exception ) {
-			Log.write( exception );
+		} catch( Throwable throwable ) {
+			Log.write( throwable );
 		}
 	}
 

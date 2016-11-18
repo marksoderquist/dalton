@@ -24,11 +24,9 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * "http://www.davisnet.com/support/weather/download/VantageSerialProtocolDocs_v261.pdf"
  * >Davis weather station serial protocol</a>.
  * <p>
- * This reader uses RXTX as the serial library.In order to use RXTX there are
- * three things that need to be configured:
+ * This reader uses purejavacomm as the serial library. In order to use purejavacomm the
+ * following need to be configured:
  * <ol>
- * <li>The RXTX shared library must be found on the java.library.path</li>
- * <li>The RXTX java library must be found on the java class path</li>
  * <li>The user running the program must have read access to the ports</li>
  * </ol>
  * On Debian and its derivatives the user should be assigned to the dialout
@@ -86,8 +84,8 @@ public class DavisReader extends Worker {
 					ThreadUtil.pause( pollInterval );
 				}
 			}
-		} catch( Exception exception ) {
-			exception.printStackTrace( System.err );
+		} catch( Throwable throwable ) {
+			Log.write( throwable );
 		} finally {
 			if( reader != null ) reader.stop();
 			if( console != null ) console.stop();

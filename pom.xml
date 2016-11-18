@@ -14,7 +14,7 @@
 
 	<groupId>com.parallelsymmetry</groupId>
 	<artifactId>dalton</artifactId>
-	<version>1.0u17</version>
+	<version>1.0u18</version>
 	<packaging>jar</packaging>
 
 	<name>Dalton Weather Reader</name>
