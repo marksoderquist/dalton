@@ -113,6 +113,8 @@ public class WeatherStation implements WeatherDataListener {
 			Log.write( Log.DETAIL, identifier, " = ", data.get( identifier ) );
 		}
 
+		Log.write( "Publishing metrics: T: " + data.get( WeatherDatumIdentifier.TEMPERATURE ).getValue() + "  W: " + data.get( WeatherDatumIdentifier.WIND_SPEED_2_MIN_AVG ).getValue() );
+
 		try {
 			weatherUndergroundPublisher.publish(data,tenMinuteBuffer);
 		} catch( Throwable throwable ) {
@@ -120,13 +122,13 @@ public class WeatherStation implements WeatherDataListener {
 		}
 
 		try {
-			updateMarkSoderquistNet();
+			updateMarkSoderquistNetWeatherx();
 		} catch( Throwable throwable ) {
 			Log.write( throwable );
 		}
 
 		try {
-			updateMarkSoderquistNetWeatherx();
+			updateMarkSoderquistNet();
 		} catch( Throwable throwable ) {
 			Log.write( throwable );
 		}

@@ -19,17 +19,16 @@
 
 LOG="/var/log/dalton.log"
 JAVA_HOME="/usr/lib/java"
-JAVA_OPTS="-Djava.library.path=/usr/lib/jni"
 DALTON_HOME="/opt/dalton"
 
 start() {
         echo "Starting Dalton Weather Reader: "
-        sudo su - dalton -c "/usr/bin/java $JAVA_OPTS -jar $DALTON_HOME/lib/dalton.jar > $LOG 2>&1 &"
+        sudo su - dalton -c "/usr/bin/java -jar $DALTON_HOME/lib/dalton.jar > $LOG 2>&1 &"
         echo "done."
 }
 stop() {
         echo "Stopping Dalton Weather Reader: "
-        sudo su - dalton -c "/usr/bin/java $JAVA_OPTS -jar $DALTON_HOME/lib/dalton.jar -stop"
+        sudo su - dalton -c "/usr/bin/java -jar $DALTON_HOME/lib/dalton.jar -stop"
         echo "done."
 }
 
