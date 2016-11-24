@@ -65,14 +65,18 @@ public class DavisReader extends Worker {
 		IoPump console = null;
 
 		try {
-			SerialAgent agent = new SerialAgent( "Davis Reader", port, 19200, SerialPort.DATABITS_8, SerialPort.PARITY_NONE, SerialPort.STOPBITS_1 );
-			agent.setReconnectDelay( 5000 );
-			agent.setStopOnException( true );
-			agent.start();
-
-			Log.write( Log.INFO, agent.getName(), " running on port ", port );
+			//			SerialAgent agent = new SerialAgent( "Davis Reader", port, 19200, SerialPort.DATABITS_8, SerialPort.PARITY_NONE, SerialPort.STOPBITS_1 );
+			//			agent.setReconnectDelay( 5000 );
+			//			agent.setStopOnException( true );
+			//			agent.start();
+			//
+			//			Log.write( Log.INFO, agent.getName(), " running on port ", port );
 
 			if( useConsole ) {
+				SerialAgent agent = new SerialAgent( "Davis Reader", port, 19200, SerialPort.DATABITS_8, SerialPort.PARITY_NONE, SerialPort.STOPBITS_1 );
+				agent.setReconnectDelay( 5000 );
+				agent.setStopOnException( true );
+				agent.start();
 				reader = new IoPump( agent.getInputStream(), new WatcherOutputStream( System.out ) );
 				reader.start();
 
@@ -80,7 +84,7 @@ public class DavisReader extends Worker {
 				console.start();
 			} else {
 				while( isExecutable() ) {
-					getData( agent );
+					getData();
 					ThreadUtil.pause( pollInterval );
 				}
 			}
@@ -89,6 +93,7 @@ public class DavisReader extends Worker {
 		} finally {
 			if( reader != null ) reader.stop();
 			if( console != null ) console.stop();
+			Log.write( "David Reader exiting..." );
 		}
 	}
 
@@ -115,12 +120,9 @@ public class DavisReader extends Worker {
 		byte[] buffer = new byte[ 8 ];
 		BufferedInputStream input = new BufferedInputStream( agent.getInputStream() );
 
-		int read = input.read( buffer );
+		int read = 0;
 		int count = read;
-		while( count < 7 ) {
-			read = input.read( buffer );
-			count += read;
-		}
+		while( count < 7 && (read = input.read( buffer )) > -1 ) count += read;
 
 		boolean connected = (buffer[ 6 ] & 1) != 0;
 
@@ -138,106 +140,106 @@ public class DavisReader extends Worker {
 		byte[] buffer = new byte[ 8 ];
 		BufferedInputStream input = new BufferedInputStream( agent.getInputStream() );
 
-		int read = input.read( buffer );
+		int read = 0;
 		int count = read;
-		while( count < 1 ) {
-			read = input.read( buffer );
-			count += read;
-		}
+		while( count < 1 && (read = input.read( buffer )) > -1 ) count += read;
 	}
 
-	private void getData( SerialAgent agent ) throws IOException {
-		//boolean connected = isReceiverConnected( agent );
-		//clearData( agent );
+	private void getData() throws IOException {
+		SerialAgent agent = new SerialAgent( "Davis Reader", port, 19200, SerialPort.DATABITS_8, SerialPort.PARITY_NONE, SerialPort.STOPBITS_1 );
+		agent.setReconnectDelay( 5000 );
+		agent.setStopOnException( true );
+		agent.start();
 
-		PrintStream output = new PrintStream( agent.getOutputStream() );
-		output.println( "LOOP 1" );
+		try {
+			byte[] buffer = new byte[ 128 ];
+			BufferedInputStream input = new BufferedInputStream( agent.getInputStream() );
 
-		byte[] buffer = new byte[ 128 ];
-		BufferedInputStream input = new BufferedInputStream( agent.getInputStream() );
+			PrintStream output = new PrintStream( agent.getOutputStream() );
+			output.println( "LOOP 1" );
 
-		int read = input.read( buffer );
-		int count = read;
-		while( count < 100 ) {
-			read = input.read( buffer );
-			count += read;
+			int read = 0;
+			int count = read;
+			while( count < 100 && (read = input.read( buffer )) > -1 ) count += read;
+
+			System.arraycopy( buffer, 1, buffer, 0, 99 );
+
+			// Barometer trend
+			BarometerTrend pressureTrend = parseBarometerTrend( buffer[ 3 ] );
+
+			// Barometer
+			int barRaw = getUnsignedByte( buffer[ 7 ] ) + (getUnsignedByte( buffer[ 8 ] ) << 8);
+			float pressure = barRaw == 0x7fff ? Float.NaN : barRaw / 1000.0f;
+
+			// Inside temperature
+			int tempInsideRaw = getUnsignedByte( buffer[ 9 ] ) + (getUnsignedByte( buffer[ 10 ] ) << 8);
+			float tempInside = tempInsideRaw == 0x7fff ? Float.NaN : tempInsideRaw / 10.0f;
+
+			// Inside humidity
+			int humidInsideRaw = getUnsignedByte( buffer[ 11 ] );
+			float humidInside = humidInsideRaw == 0xff ? Float.NaN : humidInsideRaw;
+
+			// Outside temperature
+			int tempOutsideRaw = getUnsignedByte( buffer[ 12 ] ) + ((buffer[ 13 ]) << 8);
+			float tempOutside = tempOutsideRaw == 0x7fff ? Float.NaN : tempOutsideRaw / 10.0f;
+
+			// Wind speed
+			int windSpeedRaw = getUnsignedByte( buffer[ 14 ] );
+			float windSpeed = windSpeedRaw == 0xff ? Float.NaN : windSpeedRaw;
+
+			// Wind speed 10 minute average
+			int windSpeedTenMinAvgRaw = getUnsignedByte( buffer[ 15 ] );
+			float windSpeedTenMinAvg = windSpeedTenMinAvgRaw == 0xff ? Float.NaN : windSpeedTenMinAvgRaw;
+
+			// Wind direction
+			int windDirectionRaw = getUnsignedByte( buffer[ 16 ] ) + (getUnsignedByte( buffer[ 17 ] ) << 8);
+			float windDirection = windDirectionRaw == 0x7fff ? Float.NaN : windDirectionRaw;
+
+			// Outside humidity
+			int humidOutsideRaw = getUnsignedByte( buffer[ 33 ] );
+			float humidOutside = humidOutsideRaw == 0xff ? Float.NaN : humidOutsideRaw;
+
+			// Rain rate
+			int rainRateRaw = getUnsignedByte( buffer[ 41 ] ) + (getUnsignedByte( buffer[ 42 ] ) << 8);
+			float rainRate = rainRateRaw == 0xffff ? Float.NaN : rainRateRaw / 100.0f;
+
+			// Daily rain total
+			int rainTotalDailyRaw = getUnsignedByte( buffer[ 50 ] ) + (getUnsignedByte( buffer[ 51 ] ) << 8);
+			float rainTotalDaily = rainTotalDailyRaw == 0x7fff ? Float.NaN : rainTotalDailyRaw / 100.0f;
+
+			//		Log.write();
+			//		Log.write( "Read: ", TextUtil.toPrintableString( buffer, 0, 99 ) );
+			//		Log.write( "Pressure: ", TextUtil.toPrintableString( buffer, 7, 2 ), " ", pressure );
+			//		Log.write( "Pressure trend: ", TextUtil.toPrintableString( buffer, 3, 1 ), " ", pressureTrend.name() );
+			//		Log.write( "Temp in: ", TextUtil.toPrintableString( buffer, 9, 2 ), " ", tempInside );
+			//		Log.write( "Humid in: ", TextUtil.toPrintableString( buffer, 1, 1 ), " ", humidInside + "%" );
+			//		Log.write( "Temp out: ", TextUtil.toPrintableString( buffer, 12, 2 ), " ", tempOutside );
+			//		Log.write( "Wind speed: ", TextUtil.toPrintableString( buffer, 14, 1 ), " ", windSpeed );
+			//		Log.write( "Wind speed 10 min. avg.: ", TextUtil.toPrintableString( buffer, 15, 1 ), " ", windSpeedTenMinAvg );
+			//		Log.write( "Wind direction: ", TextUtil.toPrintableString( buffer, 16, 2 ), " ", windDirection );
+			//
+			//		Log.write( "Humid out: ", TextUtil.toPrintableString( buffer, 33, 1 ), " ", humidOutside );
+			//		Log.write( "Rain rate: ", TextUtil.toPrintableString( buffer, 41, 2 ), " ", rainRate );
+			//		Log.write( "Rain total daily: ", TextUtil.toPrintableString( buffer, 50, 2 ), " ", rainTotalDaily );
+
+			WeatherDatum temperatureDatum = new WeatherDatum( WeatherDatumIdentifier.TEMPERATURE, DecimalMeasure.valueOf( tempOutside, NonSI.FAHRENHEIT ) );
+			WeatherDatum pressureDatum = new WeatherDatum( WeatherDatumIdentifier.PRESSURE, DecimalMeasure.valueOf( pressure, NonSI.INCH_OF_MERCURY ) );
+			WeatherDatum humidityDatum = new WeatherDatum( WeatherDatumIdentifier.HUMIDITY, DecimalMeasure.valueOf( humidOutside, NonSI.PERCENT ) );
+
+			WeatherDatum windSpeedDatum = new WeatherDatum( WeatherDatumIdentifier.WIND_SPEED_CURRENT, DecimalMeasure.valueOf( windSpeed, NonSI.MILES_PER_HOUR ) );
+			WeatherDatum windDirectionDatum = new WeatherDatum( WeatherDatumIdentifier.WIND_DIRECTION, DecimalMeasure.valueOf( windDirection, NonSI.DEGREE_ANGLE ) );
+			WeatherDatum windSpeedTenMinAvgDatum = new WeatherDatum( WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG, DecimalMeasure.valueOf( windSpeedTenMinAvg, NonSI.MILES_PER_HOUR ) );
+
+			WeatherDatum rainRateDatum = new WeatherDatum( WeatherDatumIdentifier.RAIN_RATE, DecimalMeasure.valueOf( rainRate, NonSI.INCH.divide( NonSI.HOUR ) ) );
+			WeatherDatum rainTotalDailyDatum = new WeatherDatum( WeatherDatumIdentifier.RAIN_TOTAL_DAILY, DecimalMeasure.valueOf( rainTotalDaily, NonSI.INCH ) );
+
+			WeatherDatum temperatureInsideDatum = new WeatherDatum( WeatherDatumIdentifier.TEMPERATURE_INSIDE, DecimalMeasure.valueOf( tempInside, NonSI.FAHRENHEIT ) );
+			WeatherDatum humidityInsideDatum = new WeatherDatum( WeatherDatumIdentifier.HUMIDITY_INSIDE, DecimalMeasure.valueOf( humidInside, NonSI.PERCENT ) );
+
+			fireWeatherEvent( new WeatherDataEvent( temperatureDatum, pressureDatum, humidityDatum, windSpeedDatum, windDirectionDatum, rainRateDatum, rainTotalDailyDatum, temperatureInsideDatum, humidityInsideDatum, windSpeedTenMinAvgDatum ) );
+		} finally {
+			if( agent != null ) agent.stop();
 		}
-
-		System.arraycopy( buffer, 1, buffer, 0, 99 );
-
-		// Barometer trend
-		BarometerTrend pressureTrend = parseBarometerTrend( buffer[ 3 ] );
-
-		// Barometer
-		int barRaw = getUnsignedByte( buffer[ 7 ] ) + (getUnsignedByte( buffer[ 8 ] ) << 8);
-		float pressure = barRaw == 0x7fff ? Float.NaN : barRaw / 1000.0f;
-
-		// Inside temperature
-		int tempInsideRaw = getUnsignedByte( buffer[ 9 ] ) + (getUnsignedByte( buffer[ 10 ] ) << 8);
-		float tempInside = tempInsideRaw == 0x7fff ? Float.NaN : tempInsideRaw / 10.0f;
-
-		// Inside humidity
-		int humidInsideRaw = getUnsignedByte( buffer[ 11 ] );
-		float humidInside = humidInsideRaw == 0xff ? Float.NaN : humidInsideRaw;
-
-		// Outside temperature
-		int tempOutsideRaw = getUnsignedByte( buffer[ 12 ] ) + ((buffer[ 13 ]) << 8);
-		float tempOutside = tempOutsideRaw == 0x7fff ? Float.NaN : tempOutsideRaw / 10.0f;
-
-		// Wind speed
-		int windSpeedRaw = getUnsignedByte( buffer[ 14 ] );
-		float windSpeed = windSpeedRaw == 0xff ? Float.NaN : windSpeedRaw;
-
-		// Wind speed 10 minute average
-		int windSpeedTenMinAvgRaw = getUnsignedByte( buffer[ 15 ] );
-		float windSpeedTenMinAvg = windSpeedTenMinAvgRaw == 0xff ? Float.NaN : windSpeedTenMinAvgRaw;
-
-		// Wind direction
-		int windDirectionRaw = getUnsignedByte( buffer[ 16 ] ) + (getUnsignedByte( buffer[ 17 ] ) << 8);
-		float windDirection = windDirectionRaw == 0x7fff ? Float.NaN : windDirectionRaw;
-
-		// Outside humidity
-		int humidOutsideRaw = getUnsignedByte( buffer[ 33 ] );
-		float humidOutside = humidOutsideRaw == 0xff ? Float.NaN : humidOutsideRaw;
-
-		// Rain rate
-		int rainRateRaw = getUnsignedByte( buffer[ 41 ] ) + (getUnsignedByte( buffer[ 42 ] ) << 8);
-		float rainRate = rainRateRaw == 0xffff ? Float.NaN : rainRateRaw / 100.0f;
-
-		// Daily rain total
-		int rainTotalDailyRaw = getUnsignedByte( buffer[ 50 ] ) + (getUnsignedByte( buffer[ 51 ] ) << 8);
-		float rainTotalDaily = rainTotalDailyRaw == 0x7fff ? Float.NaN : rainTotalDailyRaw / 100.0f;
-
-		//		Log.write();
-		//		Log.write( "Read: ", TextUtil.toPrintableString( buffer, 0, 99 ) );
-		//		Log.write( "Pressure: ", TextUtil.toPrintableString( buffer, 7, 2 ), " ", pressure );
-		//		Log.write( "Pressure trend: ", TextUtil.toPrintableString( buffer, 3, 1 ), " ", pressureTrend.name() );
-		//		Log.write( "Temp in: ", TextUtil.toPrintableString( buffer, 9, 2 ), " ", tempInside );
-		//		Log.write( "Humid in: ", TextUtil.toPrintableString( buffer, 1, 1 ), " ", humidInside + "%" );
-		//		Log.write( "Temp out: ", TextUtil.toPrintableString( buffer, 12, 2 ), " ", tempOutside );
-		//		Log.write( "Wind speed: ", TextUtil.toPrintableString( buffer, 14, 1 ), " ", windSpeed );
-		//		Log.write( "Wind speed 10 min. avg.: ", TextUtil.toPrintableString( buffer, 15, 1 ), " ", windSpeedTenMinAvg );
-		//		Log.write( "Wind direction: ", TextUtil.toPrintableString( buffer, 16, 2 ), " ", windDirection );
-		//
-		//		Log.write( "Humid out: ", TextUtil.toPrintableString( buffer, 33, 1 ), " ", humidOutside );
-		//		Log.write( "Rain rate: ", TextUtil.toPrintableString( buffer, 41, 2 ), " ", rainRate );
-		//		Log.write( "Rain total daily: ", TextUtil.toPrintableString( buffer, 50, 2 ), " ", rainTotalDaily );
-
-		WeatherDatum temperatureDatum = new WeatherDatum( WeatherDatumIdentifier.TEMPERATURE, DecimalMeasure.valueOf( tempOutside, NonSI.FAHRENHEIT ) );
-		WeatherDatum pressureDatum = new WeatherDatum( WeatherDatumIdentifier.PRESSURE, DecimalMeasure.valueOf( pressure, NonSI.INCH_OF_MERCURY ) );
-		WeatherDatum humidityDatum = new WeatherDatum( WeatherDatumIdentifier.HUMIDITY, DecimalMeasure.valueOf( humidOutside, NonSI.PERCENT ) );
-
-		WeatherDatum windSpeedDatum = new WeatherDatum( WeatherDatumIdentifier.WIND_SPEED_CURRENT, DecimalMeasure.valueOf( windSpeed, NonSI.MILES_PER_HOUR ) );
-		WeatherDatum windDirectionDatum = new WeatherDatum( WeatherDatumIdentifier.WIND_DIRECTION, DecimalMeasure.valueOf( windDirection, NonSI.DEGREE_ANGLE ) );
-		WeatherDatum windSpeedTenMinAvgDatum = new WeatherDatum( WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG, DecimalMeasure.valueOf( windSpeedTenMinAvg, NonSI.MILES_PER_HOUR ) );
-
-		WeatherDatum rainRateDatum = new WeatherDatum( WeatherDatumIdentifier.RAIN_RATE, DecimalMeasure.valueOf( rainRate, NonSI.INCH.divide( NonSI.HOUR ) ) );
-		WeatherDatum rainTotalDailyDatum = new WeatherDatum( WeatherDatumIdentifier.RAIN_TOTAL_DAILY, DecimalMeasure.valueOf( rainTotalDaily, NonSI.INCH ) );
-
-		WeatherDatum temperatureInsideDatum = new WeatherDatum( WeatherDatumIdentifier.TEMPERATURE_INSIDE, DecimalMeasure.valueOf( tempInside, NonSI.FAHRENHEIT ) );
-		WeatherDatum humidityInsideDatum = new WeatherDatum( WeatherDatumIdentifier.HUMIDITY_INSIDE, DecimalMeasure.valueOf( humidInside, NonSI.PERCENT ) );
-
-		fireWeatherEvent( new WeatherDataEvent( temperatureDatum, pressureDatum, humidityDatum, windSpeedDatum, windDirectionDatum, rainRateDatum, rainTotalDailyDatum, temperatureInsideDatum, humidityInsideDatum, windSpeedTenMinAvgDatum ) );
 	}
 
 	private void fireWeatherEvent( WeatherDataEvent event ) {
