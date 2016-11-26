@@ -12,10 +12,7 @@ import purejavacomm.SerialPort;
 
 import javax.measure.DecimalMeasure;
 import javax.measure.unit.NonSI;
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintStream;
+import java.io.*;
 import java.util.Collection;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -145,6 +142,31 @@ public class DavisReader extends Worker {
 		while( count < 1 && (read = input.read( buffer )) > -1 ) count += read;
 	}
 
+	private int read( InputStream input, byte[] data, int delay, long timeout ) throws IOException {
+		// Wait for the station to process
+		try {
+			Thread.sleep( delay );
+		} catch( InterruptedException exception ) {
+			return 0;
+		}
+
+		int read = 0;
+		int count = 0;
+		byte[] buffer = new byte[ 256 ];
+		boolean timeoutOccurred = false;
+		long timeLimit = System.currentTimeMillis() + delay + timeout;
+
+		while( input.available() > 0 && (read = input.read( buffer )) > -1 && !timeoutOccurred ) {
+			System.arraycopy( buffer, 0, data, count, read );
+			timeoutOccurred = System.currentTimeMillis() > timeLimit;
+			count+= read;
+		}
+
+		if( timeoutOccurred ) return -2;
+
+		return count;
+	}
+
 	private void getData() throws IOException {
 		SerialAgent agent = new SerialAgent( "Davis Reader", port, 19200, SerialPort.DATABITS_8, SerialPort.PARITY_NONE, SerialPort.STOPBITS_1 );
 		agent.setReconnectDelay( 5000 );
@@ -153,14 +175,15 @@ public class DavisReader extends Worker {
 
 		try {
 			byte[] buffer = new byte[ 128 ];
-			BufferedInputStream input = new BufferedInputStream( agent.getInputStream() );
 
 			PrintStream output = new PrintStream( agent.getOutputStream() );
 			output.println( "LOOP 1" );
+			output.flush();
 
-			int read = 0;
-			int count = read;
-			while( count < 100 && (read = input.read( buffer )) > -1 ) count += read;
+			BufferedInputStream input = new BufferedInputStream( agent.getInputStream() );
+			int read  = read( input, buffer, 200, 5000 );
+			Log.write( Log.DEBUG, "Bytes read: ", read );
+			if( read <= 0 ) return;
 
 			System.arraycopy( buffer, 1, buffer, 0, 99 );
 
