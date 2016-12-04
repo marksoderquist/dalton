@@ -15,6 +15,7 @@ import javax.measure.unit.NonSI;
 import java.io.*;
 import java.util.Collection;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Davis weather station reader. This reader is derived from the <a href=
@@ -77,7 +78,11 @@ public class DavisReader extends Worker {
 				console.start();
 			} else {
 				while( isExecutable() ) {
-					getData( agent );
+					try {
+						getData( agent );
+					} catch( TimeoutException exception ) {
+						Log.write( exception );
+					}
 					ThreadUtil.pause( pollInterval );
 				}
 			}
@@ -138,44 +143,55 @@ public class DavisReader extends Worker {
 		while( count < 1 && (read = input.read( buffer )) > -1 ) count += read;
 	}
 
-	private int read( InputStream input, byte[] data, int delay, long timeout ) throws IOException {
-		// Wait for the station to process
-		try {
-			Thread.sleep( delay );
-		} catch( InterruptedException exception ) {
-			return 0;
-		}
-
-		int read = 0;
+	private byte[] read( InputStream input, int length, long timeout ) throws Exception {
+		int read;
 		int count = 0;
-		byte[] buffer = new byte[ 256 ];
+		int safe = length - count;
 		boolean timeoutOccurred = false;
-		long timeLimit = System.currentTimeMillis() + delay + timeout;
+		long timeLimit = System.currentTimeMillis() + timeout;
 
-		while( input.available() > 0 && (read = input.read( buffer )) > -1 && !timeoutOccurred ) {
-			System.arraycopy( buffer, 0, data, count, read );
+		byte[] data = new byte[ length ];
+		while( input.available() > 0 && (read = input.read( data, count, safe )) > -1 && !timeoutOccurred ) {
+			if( read > 0 ) {
+				count += read;
+				safe = length - count;
+			}
 			timeoutOccurred = System.currentTimeMillis() > timeLimit;
-			count += read;
 		}
 
-		if( timeoutOccurred ) return -2;
+		if( timeoutOccurred ) throw new TimeoutException( "Timeout reading from station: " + timeout );
 
-		return count;
+		return data;
 	}
 
-	private void getData( SerialAgent agent ) throws IOException {
-		byte[] buffer = new byte[ 128 ];
-
+	private void getData( SerialAgent agent ) throws Exception {
+		BufferedInputStream input = new BufferedInputStream( agent.getInputStream() );
 		PrintStream output = new PrintStream( agent.getOutputStream() );
+
+		// Send the command
 		output.println( "LOOP 1" );
 		output.flush();
 
-		BufferedInputStream input = new BufferedInputStream( agent.getInputStream() );
-		int read = read( input, buffer, 200, 5000 );
-		Log.write( Log.DEBUG, "Bytes read: ", read );
-		if( read <= 0 ) return;
+		// Wait for the station to process
+		try {
+			Thread.sleep( 1000 );
+		} catch( InterruptedException exception ) {
+			return;
+		}
 
+		byte[] buffer = read( input, 100, 4000 );
+		Log.write( Log.DEBUG, "Bytes read in getData: ", buffer.length );
+		if( buffer.length <= 0 ) return;
+
+		// Shift the buffer left on byte
 		System.arraycopy( buffer, 1, buffer, 0, 99 );
+
+		// Check the CRC to ensure good data
+		int crc = new DavisCRC().update( buffer, 0, 99 ).value();
+		if( crc != 0 ) {
+			Log.write( Log.WARN, "CRC failure: " , crc );
+			return;
+		}
 
 		// Barometer trend
 		BarometerTrend pressureTrend = parseBarometerTrend( buffer[ 3 ] );
