@@ -143,15 +143,14 @@ public class DavisReader extends Worker {
 		while( count < 1 && (read = input.read( buffer )) > -1 ) count += read;
 	}
 
-	private byte[] read( InputStream input, int length, long timeout ) throws Exception {
+	private int read( InputStream input, byte[] data, int offset, int length, long timeout ) throws Exception {
 		int read;
 		int count = 0;
 		int safe = length - count;
 		boolean timeoutOccurred = false;
 		long timeLimit = System.currentTimeMillis() + timeout;
 
-		byte[] data = new byte[ length ];
-		while( input.available() > 0 && (read = input.read( data, count, safe )) > -1 && !timeoutOccurred ) {
+		while( input.available() > 0 && (read = input.read( data, offset + count, safe )) > -1 && !timeoutOccurred ) {
 			if( read > 0 ) {
 				count += read;
 				safe = length - count;
@@ -161,7 +160,7 @@ public class DavisReader extends Worker {
 
 		if( timeoutOccurred ) throw new TimeoutException( "Timeout reading from station: " + timeout );
 
-		return data;
+		return count;
 	}
 
 	private void getData( SerialAgent agent ) throws Exception {
@@ -179,9 +178,10 @@ public class DavisReader extends Worker {
 			return;
 		}
 
-		byte[] buffer = read( input, 100, 4000 );
-		Log.write( Log.DEBUG, "Bytes read in getData: ", buffer.length );
-		if( buffer.length <= 0 ) return;
+		byte[] buffer = new byte[100];
+		int read = read( input, buffer, 0, 100, 4000 );
+		Log.write( Log.DEBUG, "Bytes read in getData: ", read );
+		if( read <= 0 ) return;
 
 		// Shift the buffer left on byte
 		System.arraycopy( buffer, 1, buffer, 0, 99 );
