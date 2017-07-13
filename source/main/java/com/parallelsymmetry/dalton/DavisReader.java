@@ -14,6 +14,8 @@ import javax.measure.DecimalMeasure;
 import javax.measure.unit.NonSI;
 import java.io.*;
 import java.util.Collection;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.TimeoutException;
 
@@ -42,21 +44,23 @@ public class DavisReader extends Worker {
 
 	private int pollInterval = 2500;
 
+	private Thread pollingThread;
+
+	private long lastPoll;
+
+	private Timer timer;
+
+	private static final long DEAD_MAN_LIMIT = 10000;
+
 	public DavisReader() {
+		timer = new Timer( true );
 		setInterruptOnStop( true );
-		listeners = new CopyOnWriteArraySet<WeatherDataListener>();
-	}
-
-	public int getPollInterval() {
-		return pollInterval;
-	}
-
-	public void setPollInterval( int pollInterval ) {
-		this.pollInterval = pollInterval;
+		listeners = new CopyOnWriteArraySet<>();
 	}
 
 	@Override
 	public void run() {
+		pollingThread = Thread.currentThread();
 		listPortIdentifiers();
 
 		IoPump reader = null;
@@ -80,6 +84,7 @@ public class DavisReader extends Worker {
 				while( isExecutable() ) {
 					try {
 						getData( agent );
+						lastPoll = System.currentTimeMillis();
 					} catch( TimeoutException exception ) {
 						Log.write( exception );
 					}
@@ -101,6 +106,11 @@ public class DavisReader extends Worker {
 
 	public void removeWeatherDataListener( WeatherDataListener listener ) {
 		listeners.remove( listener );
+	}
+
+	@Override
+	protected void startWorker() throws Exception {
+		timer.scheduleAtFixedRate( new DeadManSwitch(), DEAD_MAN_LIMIT, DEAD_MAN_LIMIT );
 	}
 
 	@SuppressWarnings( "unchecked" )
@@ -151,10 +161,8 @@ public class DavisReader extends Worker {
 		long timeLimit = System.currentTimeMillis() + timeout;
 
 		while( input.available() > 0 && (read = input.read( data, offset + count, safe )) > -1 && !timeoutOccurred ) {
-			if( read > 0 ) {
-				count += read;
-				safe = length - count;
-			}
+			count += read;
+			safe = length - count;
 			timeoutOccurred = System.currentTimeMillis() > timeLimit;
 		}
 
@@ -178,7 +186,7 @@ public class DavisReader extends Worker {
 			return;
 		}
 
-		byte[] buffer = new byte[100];
+		byte[] buffer = new byte[ 100 ];
 		int read = read( input, buffer, 0, 100, 4000 );
 		Log.write( Log.DEBUG, "Bytes read in getData: ", read );
 		if( read <= 0 ) return;
@@ -189,7 +197,7 @@ public class DavisReader extends Worker {
 		// Check the CRC to ensure good data
 		int crc = new DavisCRC().update( buffer, 0, 99 ).value();
 		if( crc != 0 ) {
-			Log.write( Log.WARN, "CRC failure: " , crc );
+			Log.write( Log.WARN, "CRC failure: ", crc );
 			return;
 		}
 
@@ -312,6 +320,24 @@ public class DavisReader extends Worker {
 		@Override
 		public void write( int data ) throws IOException {
 			output.print( TextUtil.toPrintableString( (byte)data ) );
+		}
+
+	}
+
+	private class DeadManSwitch extends TimerTask {
+
+		@Override
+		public void run() {
+			if( (System.currentTimeMillis() - lastPoll) > DEAD_MAN_LIMIT ) {
+				Log.write( Log.ERROR, "Hung polling thread detected" );
+				if( pollingThread != null ) pollingThread.interrupt();
+			} else {
+				if( pollingThread == null ) {
+					Log.write( Log.INFO, "Polling thread not hung, but polling thread is null." );
+				} else {
+					Log.write( Log.INFO, "Polling thread not hung." );
+				}
+			}
 		}
 
 	}
