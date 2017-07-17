@@ -17,6 +17,7 @@ import java.util.Collection;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -330,7 +331,11 @@ public class DavisReader extends Worker {
 		public void run() {
 			if( (System.currentTimeMillis() - lastPoll) > DEAD_MAN_LIMIT ) {
 				Log.write( Log.ERROR, "Hung polling thread detected" );
-				if( pollingThread != null ) pollingThread.interrupt();
+				try {
+					restart( DEAD_MAN_LIMIT, TimeUnit.MILLISECONDS );
+				} catch( InterruptedException exception ) {
+					Log.write( exception );
+				}
 			} else {
 				if( pollingThread == null ) {
 					Log.write( Log.INFO, "Polling thread not hung, but polling thread is null." );
