@@ -17,7 +17,6 @@ import java.util.Collection;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -161,9 +160,10 @@ public class DavisReader extends Worker {
 		boolean timeoutOccurred = false;
 		long timeLimit = System.currentTimeMillis() + timeout;
 
-		while( input.available() > 0 && (read = input.read( data, offset + count, safe )) > -1 && !timeoutOccurred ) {
+		int available;
+		while( (available = input.available()) > 0 && (read = input.read( data, offset + count, available )) > -1 && !timeoutOccurred ) {
 			count += read;
-			safe = length - count;
+			//safe = length - count;
 			timeoutOccurred = System.currentTimeMillis() > timeLimit;
 		}
 
@@ -331,11 +331,12 @@ public class DavisReader extends Worker {
 		public void run() {
 			if( (System.currentTimeMillis() - lastPoll) > DEAD_MAN_LIMIT ) {
 				Log.write( Log.ERROR, "Hung polling thread detected" );
-				try {
-					restart( DEAD_MAN_LIMIT, TimeUnit.MILLISECONDS );
-				} catch( InterruptedException exception ) {
-					Log.write( exception );
-				}
+				if( pollingThread != null ) pollingThread.interrupt();
+//				try {
+//					restart( DEAD_MAN_LIMIT, TimeUnit.MILLISECONDS );
+//				} catch( InterruptedException exception ) {
+//					Log.write( exception );
+//				}
 			} else {
 				if( pollingThread == null ) {
 					Log.write( Log.INFO, "Polling thread not hung, but polling thread is null." );
