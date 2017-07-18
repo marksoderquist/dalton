@@ -83,10 +83,13 @@ public class DavisReader extends Worker {
 			} else {
 				while( isExecutable() ) {
 					try {
+						agent.start();
 						getData( agent );
 						lastPoll = System.currentTimeMillis();
 					} catch( TimeoutException exception ) {
 						Log.write( exception );
+					} finally {
+						agent.stop();
 					}
 					ThreadUtil.pause( pollInterval );
 				}
@@ -160,10 +163,9 @@ public class DavisReader extends Worker {
 		boolean timeoutOccurred = false;
 		long timeLimit = System.currentTimeMillis() + timeout;
 
-		int available;
-		while( (available = input.available()) > 0 && (read = input.read( data, offset + count, available )) > -1 && !timeoutOccurred ) {
+		while( input.available() > 0 && (read = input.read( data, offset + count, safe )) > -1 && !timeoutOccurred ) {
 			count += read;
-			//safe = length - count;
+			safe = length - count;
 			timeoutOccurred = System.currentTimeMillis() > timeLimit;
 		}
 
