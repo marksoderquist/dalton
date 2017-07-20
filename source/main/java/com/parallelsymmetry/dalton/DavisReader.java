@@ -50,6 +50,8 @@ public class DavisReader extends Worker {
 
 	private Timer timer;
 
+	private SerialPort serialPort;
+
 	private static final long DEAD_MAN_LIMIT = 10000;
 
 	public DavisReader() {
@@ -60,6 +62,32 @@ public class DavisReader extends Worker {
 
 	@Override
 	public void run() {
+		while( isExecutable() ) {
+			try {
+				//listPortIdentifiers();
+
+				// Open the serial port and read from it
+				Log.write( "Open the serial port: " + port );
+				CommPortIdentifier identifier = CommPortIdentifier.getPortIdentifier( port );
+				serialPort = (SerialPort)identifier.open( getName(), 0 );
+				serialPort.setSerialPortParams( 19200, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE );
+
+				getData( serialPort.getOutputStream(), serialPort.getInputStream() );
+
+				lastPoll = System.currentTimeMillis();
+			} catch( Throwable throwable ) {
+				Log.write( Log.ERROR, throwable );
+			} finally {
+				if( serialPort != null ) {
+					Log.write( "Close the serial port: " + serialPort.getName() );
+					serialPort.close();
+				}
+				ThreadUtil.pause( pollInterval );
+			}
+		}
+	}
+
+	public void runX() {
 		pollingThread = Thread.currentThread();
 		listPortIdentifiers();
 
@@ -175,16 +203,21 @@ public class DavisReader extends Worker {
 	}
 
 	private void getData( SerialAgent agent ) throws Exception {
-		BufferedInputStream input = new BufferedInputStream( agent.getInputStream() );
-		PrintStream output = new PrintStream( agent.getOutputStream() );
+		getData( agent.getOutputStream(), agent.getInputStream());
+	}
+
+	private void getData( OutputStream outputStream, InputStream inputStream ) throws Exception {
+		PrintStream output = new PrintStream( outputStream );
+		BufferedInputStream input = new BufferedInputStream( inputStream );
 
 		// Send the command
 		output.println( "LOOP 1" );
 		output.flush();
 
 		// Wait for the station to process
+		// Otherwise there are no bytes available
 		try {
-			Thread.sleep( 1000 );
+			Thread.sleep( 500 );
 		} catch( InterruptedException exception ) {
 			return;
 		}
@@ -333,18 +366,7 @@ public class DavisReader extends Worker {
 		public void run() {
 			if( (System.currentTimeMillis() - lastPoll) > DEAD_MAN_LIMIT ) {
 				Log.write( Log.ERROR, "Hung polling thread detected" );
-				if( pollingThread != null ) pollingThread.interrupt();
-//				try {
-//					restart( DEAD_MAN_LIMIT, TimeUnit.MILLISECONDS );
-//				} catch( InterruptedException exception ) {
-//					Log.write( exception );
-//				}
-			} else {
-				if( pollingThread == null ) {
-					Log.write( Log.INFO, "Polling thread not hung, but polling thread is null." );
-				} else {
-					Log.write( Log.INFO, "Polling thread not hung." );
-				}
+				if( serialPort != null ) serialPort.close();
 			}
 		}
 
