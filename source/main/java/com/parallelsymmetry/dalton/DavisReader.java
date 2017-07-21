@@ -20,17 +20,10 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.TimeoutException;
 
 /**
- * Davis weather station reader. This reader is derived from the <a href=
- * "http://www.davisnet.com/support/weather/download/VantageSerialProtocolDocs_v261.pdf"
- * >Davis weather station serial protocol</a>.
+ * Davis weather station reader. This reader is derived from the <a href= "http://www.davisnet.com/support/weather/download/VantageSerialProtocolDocs_v261.pdf" >Davis weather station serial protocol</a>.
  * <p>
- * This reader uses purejavacomm as the serial library. In order to use purejavacomm the
- * following need to be configured:
- * <ol>
- * <li>The user running the program must have read access to the ports</li>
- * </ol>
- * On Debian and its derivatives the user should be assigned to the dialout
- * group to have read access to the ports.
+ * This reader uses purejavacomm as the serial library. In order to use purejavacomm the following need to be configured: <ol> <li>The user running the program must have read access to the ports</li> </ol> On Debian and its derivatives the
+ * user should be assigned to the dialout group to have read access to the ports.
  *
  * @author mvsoder
  */
@@ -64,10 +57,10 @@ public class DavisReader extends Worker {
 	public void run() {
 		while( isExecutable() ) {
 			try {
-				//listPortIdentifiers();
+				pollingThread = Thread.currentThread();
 
 				// Open the serial port and read from it
-				Log.write( "Open the serial port: " + port );
+				Log.write( Log.DEBUG, "Open the serial port: " + port );
 				CommPortIdentifier identifier = CommPortIdentifier.getPortIdentifier( port );
 				serialPort = (SerialPort)identifier.open( getName(), 0 );
 				serialPort.setSerialPortParams( 19200, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE );
@@ -79,7 +72,7 @@ public class DavisReader extends Worker {
 				Log.write( Log.ERROR, throwable );
 			} finally {
 				if( serialPort != null ) {
-					Log.write( "Close the serial port: " + serialPort.getName() );
+					Log.write( Log.DEBUG, "Close the serial port: " + serialPort.getName() );
 					serialPort.close();
 				}
 				ThreadUtil.pause( pollInterval );
@@ -203,7 +196,7 @@ public class DavisReader extends Worker {
 	}
 
 	private void getData( SerialAgent agent ) throws Exception {
-		getData( agent.getOutputStream(), agent.getInputStream());
+		getData( agent.getOutputStream(), agent.getInputStream() );
 	}
 
 	private void getData( OutputStream outputStream, InputStream inputStream ) throws Exception {
@@ -367,6 +360,7 @@ public class DavisReader extends Worker {
 			if( (System.currentTimeMillis() - lastPoll) > DEAD_MAN_LIMIT ) {
 				Log.write( Log.ERROR, "Hung polling thread detected" );
 				if( serialPort != null ) serialPort.close();
+				if( pollingThread != null ) pollingThread.interrupt();
 			}
 		}
 

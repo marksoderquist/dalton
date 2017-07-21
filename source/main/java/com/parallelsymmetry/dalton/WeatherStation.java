@@ -9,10 +9,7 @@ import com.parallelsymmetry.utility.log.Log;
 import javax.measure.DecimalMeasure;
 import javax.measure.Measure;
 import javax.measure.unit.NonSI;
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -48,7 +45,7 @@ public class WeatherStation implements WeatherDataListener {
 		tenMinuteBuffer = new ConcurrentLinkedDeque<WeatherDataEvent>();
 		threeHourBuffer = new ConcurrentLinkedDeque<WeatherDataEvent>();
 
-		weatherUndergroundPublisher = new WeatherUndergroundPublisher(reader);
+		weatherUndergroundPublisher = new WeatherUndergroundPublisher( reader, this );
 	}
 
 	public Map<WeatherDatumIdentifier, Measure<?, ?>> getData() {
@@ -74,7 +71,7 @@ public class WeatherStation implements WeatherDataListener {
 	public float getTemperature() {
 		Measure<?, ?> measure = getMeasure( WeatherDatumIdentifier.TEMPERATURE );
 		if( measure == null ) return Float.NaN;
-		return ( (Float)measure.getValue() ).floatValue();
+		return ((Float)measure.getValue()).floatValue();
 	}
 
 	public Measure<?, ?> getMeasure( WeatherDatumIdentifier datum ) {
@@ -116,7 +113,7 @@ public class WeatherStation implements WeatherDataListener {
 		Log.write( "Publishing metrics: T: " + data.get( WeatherDatumIdentifier.TEMPERATURE ).getValue() + "  W: " + data.get( WeatherDatumIdentifier.WIND_SPEED_2_MIN_AVG ).getValue() );
 
 		try {
-			weatherUndergroundPublisher.publish(data,tenMinuteBuffer);
+			weatherUndergroundPublisher.publish( data, tenMinuteBuffer );
 		} catch( Throwable throwable ) {
 			Log.write( throwable );
 		}
@@ -237,7 +234,7 @@ public class WeatherStation implements WeatherDataListener {
 		if( buffer.size() >= 2 ) {
 			float first = getValue( buffer.peekFirst(), WeatherDatumIdentifier.PRESSURE );
 			float last = getValue( buffer.peekLast(), WeatherDatumIdentifier.PRESSURE );
-			trend = ( first - last ) / 3f;
+			trend = (first - last) / 3f;
 		}
 		data.put( WeatherDatumIdentifier.PRESSURE_TREND, DecimalMeasure.valueOf( trend, NonSI.INCH_OF_MERCURY.divide( NonSI.HOUR ) ) );
 	}
@@ -311,7 +308,7 @@ public class WeatherStation implements WeatherDataListener {
 		generator.writeNumberField( "windTwoMinMax", (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_2_MIN_MAX ).getValue() );
 		generator.writeNumberField( "windTwoMinAvg", (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_2_MIN_AVG ).getValue() );
 		generator.writeNumberField( "windTwoMinMin", (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_2_MIN_MIN ).getValue() );
-		
+
 		generator.writeNumberField( "rainTotalDaily", (Float)data.get( WeatherDatumIdentifier.RAIN_TOTAL_DAILY ).getValue() );
 		generator.writeNumberField( "rainRate", (Float)data.get( WeatherDatumIdentifier.RAIN_RATE ).getValue() );
 
@@ -327,11 +324,8 @@ public class WeatherStation implements WeatherDataListener {
 	}
 
 	/**
-	 * This method to send data to the Weather Underground was developed using
-	 * instructions from:
-	 * <a href="http://wiki.wunderground.com/index.php/PWS_-_Upload_Protocol" >
-	 * http://wiki.wunderground.com/index.php/PWS_-_Upload_Protocol</a>
-	 * 
+	 * This method to send data to the Weather Underground was developed using instructions from: <a href="http://wiki.wunderground.com/index.php/PWS_-_Upload_Protocol" > http://wiki.wunderground.com/index.php/PWS_-_Upload_Protocol</a>
+	 *
 	 * @return
 	 * @throws IOException
 	 */
@@ -369,9 +363,9 @@ public class WeatherStation implements WeatherDataListener {
 		// Prepare wind gust data.
 		float w = (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_CURRENT ).getValue();
 		if( WeatherUtil.isGust( w, tenMinuteBuffer ) ) {
-			add(builder,  w , "windgustmph", "0");
+			add( builder, w, "windgustmph", "0" );
 		} else {
-			add(builder, WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG, "windgustmph", "0");
+			add( builder, WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG, "windgustmph", "0" );
 		}
 		add( builder, WeatherDatumIdentifier.WIND_DIRECTION, "windgustdir", "0" );
 
@@ -408,19 +402,23 @@ public class WeatherStation implements WeatherDataListener {
 		}
 	}
 
-	private Response rest( String method, String url ) throws IOException {
+	Response rest( String method, String url ) throws IOException {
 		return rest( method, url, null );
 	}
 
-	private Response rest( String method, String url, byte[] request ) throws IOException {
+	Response rest( String method, String url, byte[] request ) throws IOException {
 		return rest( method, url, null, request );
 	}
 
-	private Response rest( String method, String url, Map<String, String> headers, byte[] request ) throws IOException {
+	Response rest( String method, String url, Map<String, String> headers, byte[] request ) throws IOException {
 		String USER_AGENT = "Mozilla/5.0";
+
+		Log.write( Log.TRACE, "Sending to: " + url );
 
 		// Set up the request.
 		HttpURLConnection connection = (HttpURLConnection)new URL( url ).openConnection();
+		connection.setConnectTimeout( 5000 );
+		connection.setReadTimeout( 5000 );
 		connection.setRequestMethod( method );
 		connection.setRequestProperty( "User-Agent", USER_AGENT );
 		connection.setAllowUserInteraction( false );
@@ -431,10 +429,11 @@ public class WeatherStation implements WeatherDataListener {
 		}
 		if( request != null ) {
 			connection.setDoOutput( true );
+			OutputStream output = connection.getOutputStream();
 			try {
-				connection.getOutputStream().write( request );
+				output.write( request );
 			} finally {
-				connection.getOutputStream().close();
+				if( output != null ) output.close();
 			}
 		}
 
@@ -447,7 +446,7 @@ public class WeatherStation implements WeatherDataListener {
 			String inputLine;
 			StringBuilder response = new StringBuilder();
 			BufferedReader input = new BufferedReader( new InputStreamReader( connection.getInputStream() ) );
-			while( ( inputLine = input.readLine() ) != null ) {
+			while( (inputLine = input.readLine()) != null ) {
 				response.append( inputLine );
 			}
 			input.close();
@@ -468,7 +467,7 @@ public class WeatherStation implements WeatherDataListener {
 		return new DecimalFormat( format ).format( value );
 	}
 
-	private class Response {
+	class Response {
 
 		private int code;
 
