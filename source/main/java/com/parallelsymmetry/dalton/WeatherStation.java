@@ -119,16 +119,16 @@ public class WeatherStation implements WeatherDataListener {
 		}
 
 		try {
-			updateMarkSoderquistNetWeatherx();
+			updateMarkSoderquistNetWeather();
 		} catch( Throwable throwable ) {
 			Log.write( throwable );
 		}
 
-		try {
-			updateMarkSoderquistNet();
-		} catch( Throwable throwable ) {
-			Log.write( throwable );
-		}
+		//		try {
+		//			updateMarkSoderquistNetWeatherOld();
+		//		} catch( Throwable throwable ) {
+		//			Log.write( throwable );
+		//		}
 	}
 
 	private void postDataEvent( WeatherDataEvent event, Deque<WeatherDataEvent> buffer, long timeout ) {
@@ -246,44 +246,7 @@ public class WeatherStation implements WeatherDataListener {
 		return Float.NaN;
 	}
 
-	private int updateMarkSoderquistNet() throws IOException {
-		Map<String, String> fields = new HashMap<>();
-		fields.put( "timestamp", String.valueOf( System.currentTimeMillis() ) );
-
-		// Prepare basic values.
-		fields.put( "temperature", format( WeatherDatumIdentifier.TEMPERATURE, "0.0" ) );
-		fields.put( "pressure", format( WeatherDatumIdentifier.PRESSURE, "0.00" ) );
-		fields.put( "humidity", format( WeatherDatumIdentifier.HUMIDITY, "0" ) );
-
-		// Prepare derived values.
-		fields.put( "dew-point", format( WeatherDatumIdentifier.DEW_POINT, "0.0" ) );
-		fields.put( "wind-chill", format( WeatherDatumIdentifier.WIND_CHILL, "0.0" ) );
-		fields.put( "heat-index", format( WeatherDatumIdentifier.HEAT_INDEX, "0.0" ) );
-		fields.put( "pressure-trend", format( WeatherDatumIdentifier.PRESSURE_TREND, "0.00" ) );
-
-		// Prepare wind values.
-		fields.put( "wind-current", format( WeatherDatumIdentifier.WIND_SPEED_CURRENT, "0" ) );
-		fields.put( "wind-direction", format( WeatherDatumIdentifier.WIND_DIRECTION, "0" ) );
-		fields.put( "wind-10-min-max", format( WeatherDatumIdentifier.WIND_SPEED_10_MIN_MAX, "0" ) );
-		fields.put( "wind-10-min-avg", format( WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG, "0.0" ) );
-		fields.put( "wind-10-min-min", format( WeatherDatumIdentifier.WIND_SPEED_10_MIN_MIN, "0" ) );
-		fields.put( "wind-2-min-max", format( WeatherDatumIdentifier.WIND_SPEED_2_MIN_MAX, "0" ) );
-		fields.put( "wind-2-min-avg", format( WeatherDatumIdentifier.WIND_SPEED_2_MIN_AVG, "0.0" ) );
-		fields.put( "wind-2-min-min", format( WeatherDatumIdentifier.WIND_SPEED_2_MIN_MIN, "0" ) );
-
-		// Prepare rain values.
-		fields.put( "rain-total-daily", format( WeatherDatumIdentifier.RAIN_TOTAL_DAILY, "0.00" ) );
-		fields.put( "rain-rate", format( WeatherDatumIdentifier.RAIN_RATE, "0.00" ) );
-
-		Properties properties = new Properties();
-		properties.putAll( fields );
-		ByteArrayOutputStream output = new ByteArrayOutputStream();
-		properties.store( output, null );
-
-		return rest( "PUT", "http://ruby:8080/weather/wxstation", output.toByteArray() ).getCode();
-	}
-
-	private int updateMarkSoderquistNetWeatherx() throws IOException {
+	private int updateMarkSoderquistNetWeather() throws IOException {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 
 		JsonGenerator generator = new JsonFactory().createGenerator( stream );
@@ -319,8 +282,45 @@ public class WeatherStation implements WeatherDataListener {
 		headers.put( "content-type", "application/json" );
 		headers.put( "Authorization", "Basic ZGFsdG9uOkRvNUpwTW84ejVoU3hVaTQ=" );
 
-		rest( "PUT", "http://ruby:8080/weatherx/station?id=bluewing", headers, stream.toByteArray() ).getCode();
-		return rest( "PUT", "http://mark.soderquist.net/weatherx/station?id=bluewing", headers, stream.toByteArray() ).getCode();
+		return rest( "PUT", "http://mark.soderquist.net/weather/api/station?id=bluewing", headers, stream.toByteArray() ).getCode();
+	}
+
+	@Deprecated
+	private int updateMarkSoderquistNetWeatherOld() throws IOException {
+		Map<String, String> fields = new HashMap<>();
+		fields.put( "timestamp", String.valueOf( System.currentTimeMillis() ) );
+
+		// Prepare basic values.
+		fields.put( "temperature", format( WeatherDatumIdentifier.TEMPERATURE, "0.0" ) );
+		fields.put( "pressure", format( WeatherDatumIdentifier.PRESSURE, "0.00" ) );
+		fields.put( "humidity", format( WeatherDatumIdentifier.HUMIDITY, "0" ) );
+
+		// Prepare derived values.
+		fields.put( "dew-point", format( WeatherDatumIdentifier.DEW_POINT, "0.0" ) );
+		fields.put( "wind-chill", format( WeatherDatumIdentifier.WIND_CHILL, "0.0" ) );
+		fields.put( "heat-index", format( WeatherDatumIdentifier.HEAT_INDEX, "0.0" ) );
+		fields.put( "pressure-trend", format( WeatherDatumIdentifier.PRESSURE_TREND, "0.00" ) );
+
+		// Prepare wind values.
+		fields.put( "wind-current", format( WeatherDatumIdentifier.WIND_SPEED_CURRENT, "0" ) );
+		fields.put( "wind-direction", format( WeatherDatumIdentifier.WIND_DIRECTION, "0" ) );
+		fields.put( "wind-10-min-max", format( WeatherDatumIdentifier.WIND_SPEED_10_MIN_MAX, "0" ) );
+		fields.put( "wind-10-min-avg", format( WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG, "0.0" ) );
+		fields.put( "wind-10-min-min", format( WeatherDatumIdentifier.WIND_SPEED_10_MIN_MIN, "0" ) );
+		fields.put( "wind-2-min-max", format( WeatherDatumIdentifier.WIND_SPEED_2_MIN_MAX, "0" ) );
+		fields.put( "wind-2-min-avg", format( WeatherDatumIdentifier.WIND_SPEED_2_MIN_AVG, "0.0" ) );
+		fields.put( "wind-2-min-min", format( WeatherDatumIdentifier.WIND_SPEED_2_MIN_MIN, "0" ) );
+
+		// Prepare rain values.
+		fields.put( "rain-total-daily", format( WeatherDatumIdentifier.RAIN_TOTAL_DAILY, "0.00" ) );
+		fields.put( "rain-rate", format( WeatherDatumIdentifier.RAIN_RATE, "0.00" ) );
+
+		Properties properties = new Properties();
+		properties.putAll( fields );
+		ByteArrayOutputStream output = new ByteArrayOutputStream();
+		properties.store( output, null );
+
+		return rest( "PUT", "http://ruby:8080/weather/wxstation", output.toByteArray() ).getCode();
 	}
 
 	/**
