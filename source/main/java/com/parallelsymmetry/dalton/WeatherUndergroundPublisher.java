@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.text.DecimalFormat;
 import java.util.Date;
-import java.util.Deque;
 import java.util.Map;
 import java.util.TimeZone;
 
@@ -26,7 +25,7 @@ public class WeatherUndergroundPublisher {
 		this.station = station;
 	}
 
-	public int publish( Map<WeatherDatumIdentifier, Measure<?, ?>> data, Deque<WeatherDataEvent> tenMinuteBuffer ) throws IOException {
+	public int publish( Map<WeatherDatumIdentifier, Measure<?, ?>> data ) throws IOException {
 		// Example:
 		// http://rtupdate.wunderground.com/weatherstation/updateweatherstation.php?ID=KCASANFR5&PASSWORD=XXXXXX&dateutc=2000-01-01+10%3A32%3A35&winddir=230&windspeedmph=12&windgustmph=12&tempf=70&rainin=0&baromin=29.1&dewptf=68.2&humidity=90&weather=&clouds=&softwaretype=vws%20versionxx&action=updateraw&realtime=1&rtfreq=2.5
 
@@ -42,7 +41,6 @@ public class WeatherUndergroundPublisher {
 		StringBuilder builder = new StringBuilder( "http://rtupdate.wunderground.com/weatherstation/updateweatherstation.php" );
 		builder.append( "?ID=KUTRIVER9" );
 		builder.append( "&PASSWORD=effea03f" );
-		//         builder.append("&PASSWORD=qWest73wun");
 		builder.append( "&action=updateraw" );
 		builder.append( "&realtime=1&rtfreq=2.5" );
 		builder.append( "&dateutc=" );

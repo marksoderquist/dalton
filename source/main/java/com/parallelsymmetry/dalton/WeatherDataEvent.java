@@ -3,6 +3,8 @@ package com.parallelsymmetry.dalton;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class WeatherDataEvent {
 
@@ -16,6 +18,8 @@ public class WeatherDataEvent {
 
 	private Collection<WeatherDatum> data;
 
+	private Map<WeatherDatumIdentifier, WeatherDatum> map;
+
 	public WeatherDataEvent( WeatherDatum... data ) {
 		this( Type.READ, data );
 	}
@@ -28,6 +32,10 @@ public class WeatherDataEvent {
 		this.type = type;
 		this.timestamp = timestamp;
 		this.data = Arrays.asList( data );
+		this.map = new ConcurrentHashMap<>();
+		for( WeatherDatum datum : data ) {
+			this.map.put( datum.getIdentifier(), datum );
+		}
 	}
 
 	public Type getType() {
@@ -40,6 +48,10 @@ public class WeatherDataEvent {
 
 	public Collection<WeatherDatum> getData() {
 		return data;
+	}
+
+	public WeatherDatum get( WeatherDatumIdentifier identifier ) {
+		return map.get( identifier );
 	}
 
 }
