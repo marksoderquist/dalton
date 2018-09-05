@@ -7,11 +7,9 @@ import javax.measure.Measure;
 import javax.measure.quantity.Quantity;
 import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
-import java.util.Deque;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 public class WeatherStation {
@@ -30,14 +28,6 @@ public class WeatherStation {
 
 	private TimedEventBuffer threeHourBuffer;
 
-	private Deque<WeatherDataEvent> oldTwoMinuteBuffer;
-
-	private Deque<WeatherDataEvent> oldFiveMinuteBuffer;
-
-	private Deque<WeatherDataEvent> oldTenMinuteBuffer;
-
-	private Deque<WeatherDataEvent> oldThreeHourBuffer;
-
 	public WeatherStation() {
 		data = new ConcurrentHashMap<>();
 		publishers = new CopyOnWriteArraySet<>();
@@ -47,11 +37,6 @@ public class WeatherStation {
 		fiveMinuteBuffer = new TimedEventBuffer( 300000 );
 		tenMinuteBuffer = new TimedEventBuffer( 600000 );
 		threeHourBuffer = new TimedEventBuffer( 10800000 );
-
-		oldTwoMinuteBuffer = new ConcurrentLinkedDeque<>();
-		oldFiveMinuteBuffer = new ConcurrentLinkedDeque<>();
-		oldTenMinuteBuffer = new ConcurrentLinkedDeque<>();
-		oldThreeHourBuffer = new ConcurrentLinkedDeque<>();
 	}
 
 	public void addPublisher( WeatherDataPublisher publisher ) {

@@ -8,12 +8,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class WeatherDataEvent {
 
-	public enum Type {
-		READ
-	}
-
-	private Type type;
-
 	private Date timestamp;
 
 	private Collection<WeatherDatum> data;
@@ -21,25 +15,16 @@ public class WeatherDataEvent {
 	private Map<WeatherDatumIdentifier, WeatherDatum> map;
 
 	public WeatherDataEvent( WeatherDatum... data ) {
-		this( Type.READ, data );
+		this( new Date(), data );
 	}
 
-	public WeatherDataEvent( Type type, WeatherDatum... data ) {
-		this( type, new Date(), data );
-	}
-
-	public WeatherDataEvent( Type type, Date timestamp, WeatherDatum... data ) {
-		this.type = type;
+	public WeatherDataEvent( Date timestamp, WeatherDatum... data ) {
 		this.timestamp = timestamp;
 		this.data = Arrays.asList( data );
 		this.map = new ConcurrentHashMap<>();
 		for( WeatherDatum datum : data ) {
 			this.map.put( datum.getIdentifier(), datum );
 		}
-	}
-
-	public Type getType() {
-		return type;
 	}
 
 	public Date getTimestamp() {

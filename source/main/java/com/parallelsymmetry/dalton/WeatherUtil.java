@@ -10,8 +10,7 @@ public class WeatherUtil {
 		double b = 18.678;
 		double c = 470.3;
 		double g = Math.log( h / 100f ) + ( b * t / ( c + t ) );
-		double dp = ( c * g ) / ( b - g );
-		return (double)dp;
+		return ( c * g ) / ( b - g );
 	}
 
 	public static double calculateWindChill( double t, double w ) {
@@ -23,15 +22,15 @@ public class WeatherUtil {
 	public static double calculateHeatIndex( double t, double h ) {
 		if( t < 80 || h < 40 ) return t;
 
-		double c1 = -42.379f;
-		double c2 = 2.04901523f;
-		double c3 = 10.14333127f;
-		double c4 = -0.22475541f;
-		double c5 = -6.83783e-3f;
-		double c6 = -5.481717e-10f;
-		double c7 = 1.22874e-3f;
-		double c8 = 8.5282e-4f;
-		double c9 = -1.99e-6f;
+		double c1 = -42.379;
+		double c2 = 2.04901523;
+		double c3 = 10.14333127;
+		double c4 = -0.22475541;
+		double c5 = -6.83783e-3;
+		double c6 = -5.481717e-10;
+		double c7 = 1.22874e-3;
+		double c8 = 8.5282e-4;
+		double c9 = -1.99e-6;
 
 		double t2 = t * t;
 		double h2 = h * h;
@@ -43,9 +42,9 @@ public class WeatherUtil {
 	 * Determine if the instantaneous wind velocity is a gust. A gust is a
 	 * velocity greater than 10 MPH above the mean velocity.
 	 *
-	 * @param wind
-	 * @param buffer
-	 * @return
+	 * @param wind The wind speed
+	 * @param buffer The weather data event buffer
+	 * @return If the wind speed is a gust relative to the buffer data
 	 */
 	public static boolean isGust( double wind, Deque<WeatherDataEvent> buffer ) {
 		// Collect the wind data from the buffer.
@@ -65,4 +64,5 @@ public class WeatherUtil {
 
 		return wind - mean > 10;
 	}
+
 }

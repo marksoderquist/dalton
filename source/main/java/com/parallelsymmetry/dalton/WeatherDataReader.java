@@ -2,6 +2,8 @@ package com.parallelsymmetry.dalton;
 
 public interface WeatherDataReader {
 
-	void setWeatherStation( WeatherStation station );
+	void addWeatherStation( WeatherStation station );
+
+	void removeWeatherStation( WeatherStation station );
 
 }

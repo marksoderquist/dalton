@@ -1,6 +1,5 @@
 package com.parallelsymmetry.dalton;
 
-import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
@@ -18,10 +17,6 @@ public class TimedEventBuffer {
 	public void post( WeatherDataEvent event ) {
 		buffer.push( event );
 		trimEvents();
-	}
-
-	public Deque<WeatherDataEvent> getDeque() {
-		return new ArrayDeque<>( buffer );
 	}
 
 	public double getMinimum( WeatherDatumIdentifier identifier ) {

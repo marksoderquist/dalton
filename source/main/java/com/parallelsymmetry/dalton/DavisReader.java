@@ -28,7 +28,7 @@ import java.util.concurrent.TimeoutException;
  *
  * @author mvsoder
  */
-public class DavisReader extends Worker {
+public class DavisReader extends Worker implements WeatherDataReader {
 
 	private boolean useConsole = false;
 
@@ -125,10 +125,12 @@ public class DavisReader extends Worker {
 		}
 	}
 
+	@Override
 	public void addWeatherStation( WeatherStation station ) {
 		stations.add( station );
 	}
 
+	@Override
 	public void removeWeatherStation( WeatherStation station ) {
 		stations.remove( station );
 	}
@@ -140,30 +142,9 @@ public class DavisReader extends Worker {
 
 	@SuppressWarnings( "unchecked" )
 	private void listPortIdentifiers() {
-		for( CommPortIdentifier identifier : new EnumerationIterator<CommPortIdentifier>( CommPortIdentifier.getPortIdentifiers() ) ) {
+		for( CommPortIdentifier identifier : new EnumerationIterator<>( CommPortIdentifier.getPortIdentifiers() ) ) {
 			Log.write( "Port: ", identifier.getName() );
 		}
-	}
-
-	// Does not work to detect if receiver is disconnected.
-	private boolean isReceiverConnected( SerialAgent agent ) throws IOException {
-		PrintStream output = new PrintStream( agent.getOutputStream() );
-		output.println( "RECEIVERS" );
-
-		byte[] buffer = new byte[ 8 ];
-		BufferedInputStream input = new BufferedInputStream( agent.getInputStream() );
-
-		int read = 0;
-		int count = read;
-		while( count < 7 && (read = input.read( buffer )) > -1 ) count += read;
-
-		boolean connected = (buffer[ 6 ] & 1) != 0;
-
-		Log.write();
-		Log.write( "Read: ", TextUtil.toPrintableString( buffer, 0, 7 ) );
-		Log.write( "Connected: ", connected );
-
-		return connected;
 	}
 
 	private void clearData( SerialAgent agent ) throws IOException {
