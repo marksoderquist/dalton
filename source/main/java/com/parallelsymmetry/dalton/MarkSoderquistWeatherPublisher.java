@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 
 import javax.measure.Measure;
+import javax.measure.quantity.Quantity;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
@@ -12,14 +13,14 @@ import java.util.Map;
 public class MarkSoderquistWeatherPublisher extends HttpPublisher {
 
 	@Override
-	public int publish( Map<WeatherDatumIdentifier, Measure<?, ?>> data ) throws IOException {
+	public int publish( Map<WeatherDatumIdentifier, Measure<? extends Number, ? extends Quantity>> data ) throws IOException {
 		Map<String, String> headers = new HashMap<>();
 		headers.put( "content-type", "application/json" );
 		headers.put( "Authorization", "Basic ZGFsdG9uOkRvNUpwTW84ejVoU3hVaTQ=" );
 		return rest( "PUT", "http://mark.soderquist.net/weather/api/station?id=bluewing", headers, generatePayload( data ) ).getCode();
 	}
 
-	public byte[] generatePayload( Map<WeatherDatumIdentifier, Measure<?, ?>> data ) throws IOException {
+	public byte[] generatePayload( Map<WeatherDatumIdentifier, Measure<? extends Number, ? extends Quantity>> data ) throws IOException {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 
 		JsonGenerator generator = new JsonFactory().createGenerator( stream );

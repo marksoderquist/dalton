@@ -4,6 +4,7 @@ import com.parallelsymmetry.utility.DateUtil;
 import com.parallelsymmetry.utility.TextUtil;
 
 import javax.measure.Measure;
+import javax.measure.quantity.Quantity;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.text.DecimalFormat;
@@ -24,11 +25,11 @@ public class WeatherUndergroundPublisher extends HttpPublisher {
 		this.program = program;
 	}
 
-	public int publish( Map<WeatherDatumIdentifier, Measure<?, ?>> data ) throws IOException {
+	public int publish( Map<WeatherDatumIdentifier, Measure<? extends Number, ? extends Quantity>> data ) throws IOException {
 		return rest( "GET", generatePayload( data ) ).getCode();
 	}
 
-	public String generatePayload( Map<WeatherDatumIdentifier, Measure<?, ?>> data ) throws IOException {
+	public String generatePayload( Map<WeatherDatumIdentifier, Measure<? extends Number, ? extends Quantity>> data ) throws IOException {
 		// Example:
 		// http://rtupdate.wunderground.com/weatherstation/updateweatherstation.php?ID=KCASANFR5&PASSWORD=XXXXXX&dateutc=2000-01-01+10%3A32%3A35&winddir=230&windspeedmph=12&windgustmph=12&tempf=70&rainin=0&baromin=29.1&dewptf=68.2&humidity=90&weather=&clouds=&softwaretype=vws%20versionxx&action=updateraw&realtime=1&rtfreq=2.5
 
@@ -41,34 +42,41 @@ public class WeatherUndergroundPublisher extends HttpPublisher {
 		//	windgustmph_10m - [mph past 10 minutes wind gust mph ]
 		//	windgustdir_10m - [0-360 past 10 minutes wind gust direction]
 
+		long timestamp = (Long)data.get( WeatherDatumIdentifier.TIMESTAMP ).getValue();
+
 		StringBuilder builder = new StringBuilder( "http://rtupdate.wunderground.com/weatherstation/updateweatherstation.php" );
 		builder.append( "?ID=KUTRIVER9" );
 		builder.append( "&PASSWORD=effea03f" );
 		builder.append( "&action=updateraw" );
 		builder.append( "&realtime=1&rtfreq=2.5" );
 		builder.append( "&dateutc=" );
-		builder.append( DateUtil.format( new Date(), WUNDERGROUND_DATE_FORMAT, TimeZone.getTimeZone( "UTC" ) ) );
+		builder.append( DateUtil.format( new Date( timestamp ), WUNDERGROUND_DATE_FORMAT, TimeZone.getTimeZone( "UTC" ) ) );
 
-		// Prepare basic data.
+		// Prepare basic data
 		add( data, builder, WeatherDatumIdentifier.TEMPERATURE, "tempf", "0.0" );
 		add( data, builder, WeatherDatumIdentifier.PRESSURE, "baromin", "0.00" );
 		add( data, builder, WeatherDatumIdentifier.HUMIDITY, "humidity", "0" );
 		add( data, builder, WeatherDatumIdentifier.DEW_POINT, "dewptf", "0.0" );
 
-		// Prepare wind data.
+		// Prepare wind data
 		add( data, builder, WeatherDatumIdentifier.WIND_DIRECTION, "winddir", "0" );
 		add( data, builder, WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG, "windspeedmph", "0.0" );
 
-		// Prepare wind gust data.
-		float wa = (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_5_MIN_AVG ).getValue();
-		float ws = (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_5_MIN_MAX ).getValue();
-		if( ws - wa > 10 ) add( builder, ws, "windgustmph", "0" );
+		// Prepare wind gust data
+		// This uses the five minute data because Weather Underground only uses one value every five minutes
+		Measure<? extends Number, ? extends Quantity> waMeasure = data.get( WeatherDatumIdentifier.WIND_SPEED_5_MIN_AVG );
+		Measure<? extends Number, ? extends Quantity> wxMeasure = data.get( WeatherDatumIdentifier.WIND_SPEED_5_MIN_MAX );
+		if( waMeasure != null && wxMeasure != null ) {
+			double wa = (Double)waMeasure.getValue();
+			double wx = (Double)wxMeasure.getValue();
+			if( wx - wa > 10 ) add( builder, wx, "windgustmph", "0" );
+		}
 
-		// Prepare rain data.
+		// Prepare rain data
 		add( data, builder, WeatherDatumIdentifier.RAIN_RATE, "rainin", "0.00" );
 		add( data, builder, WeatherDatumIdentifier.RAIN_TOTAL_DAILY, "dailyrainin", "0.00" );
 
-		// Prepare software data.
+		// Prepare software data
 		builder.append( "&softwaretype=dalton" );
 		String release = program.getCard().getRelease().toHumanString( DateUtil.DEFAULT_TIME_ZONE );
 		builder.append( URLEncoder.encode( " " + release, TextUtil.DEFAULT_ENCODING ) );
@@ -76,13 +84,13 @@ public class WeatherUndergroundPublisher extends HttpPublisher {
 		return builder.toString();
 	}
 
-	private void add( Map<WeatherDatumIdentifier, Measure<?, ?>> data, StringBuilder builder, WeatherDatumIdentifier identifier, String key, String format ) {
-		Measure<?, ?> measure = data.get( identifier );
+	private void add( Map<WeatherDatumIdentifier, Measure<? extends Number, ? extends Quantity>> data, StringBuilder builder, WeatherDatumIdentifier identifier, String key, String format ) {
+		Measure<? extends Number, ? extends Quantity> measure = data.get( identifier );
 		if( measure == null ) return;
-		add( builder, (Float)measure.getValue(), key, format );
+		add( builder, (Double)measure.getValue(), key, format );
 	}
 
-	private void add( StringBuilder builder, float value, String key, String format ) {
+	private void add( StringBuilder builder, double value, String key, String format ) {
 		builder.append( "&" );
 		builder.append( key );
 		builder.append( "=" );

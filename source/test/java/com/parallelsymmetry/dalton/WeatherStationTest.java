@@ -1,9 +1,11 @@
 package com.parallelsymmetry.dalton;
 
 import junit.framework.TestCase;
+import org.junit.Test;
 
 import javax.measure.DecimalMeasure;
 import javax.measure.Measure;
+import javax.measure.quantity.Quantity;
 import javax.measure.unit.NonSI;
 import java.io.IOException;
 import java.util.List;
@@ -15,6 +17,7 @@ import static org.junit.Assert.assertThat;
 
 public class WeatherStationTest extends TestCase {
 
+	@Test
 	public void testWeatherDataEvent() {
 		WeatherStation station = new WeatherStation();
 		WeatherDataCollector collector = new WeatherDataCollector();
@@ -59,18 +62,18 @@ public class WeatherStationTest extends TestCase {
 
 	private class WeatherDataCollector implements WeatherDataPublisher {
 
-		private List<Map<WeatherDatumIdentifier, Measure<?, ?>>> events;
+		private List<Map<WeatherDatumIdentifier, Measure<? extends Number, ? extends Quantity>>> events;
 
 		public WeatherDataCollector() {
 			events = new CopyOnWriteArrayList<>();
 		}
 
-		public List<Map<WeatherDatumIdentifier, Measure<?, ?>>> getEvents() {
+		public List<Map<WeatherDatumIdentifier, Measure<? extends Number, ? extends Quantity>>> getEvents() {
 			return events;
 		}
 
 		@Override
-		public int publish( Map<WeatherDatumIdentifier, Measure<?, ?>> data ) throws IOException {
+		public int publish( Map<WeatherDatumIdentifier, Measure<? extends Number, ? extends Quantity>> data ) throws IOException {
 			events.add( data );
 			return 200;
 		}

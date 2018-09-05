@@ -2,6 +2,7 @@ package com.parallelsymmetry.dalton;
 
 public enum WeatherDatumIdentifier {
 
+	TIMESTAMP,
 	TEMPERATURE,
 	HUMIDITY,
 	PRESSURE,

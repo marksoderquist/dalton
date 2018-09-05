@@ -1,14 +1,15 @@
 package com.parallelsymmetry.dalton;
 
 import javax.measure.Measure;
+import javax.measure.quantity.Quantity;
 
 public class WeatherDatum {
 
 	private WeatherDatumIdentifier identifier;
 
-	private Measure<?, ?> measure;
+	private Measure<? extends Number, ? extends Quantity> measure;
 
-	public WeatherDatum( WeatherDatumIdentifier identifier, Measure<?, ?> measure ) {
+	public WeatherDatum( WeatherDatumIdentifier identifier, Measure<? extends Number, ? extends Quantity> measure ) {
 		this.identifier = identifier;
 		this.measure = measure;
 	}
@@ -17,7 +18,7 @@ public class WeatherDatum {
 		return identifier;
 	}
 
-	public Measure<?, ?> getMeasure() {
+	public Measure<? extends Number, ? extends Quantity> getMeasure() {
 		return measure;
 	}
 
@@ -25,5 +26,5 @@ public class WeatherDatum {
 	public String toString() {
 		return identifier.name() + " = " + measure.toString();
 	}
-	
+
 }

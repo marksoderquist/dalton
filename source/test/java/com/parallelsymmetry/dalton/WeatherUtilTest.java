@@ -1,12 +1,14 @@
 package com.parallelsymmetry.dalton;
 
 import junit.framework.TestCase;
+import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 public class WeatherUtilTest extends TestCase {
 
+	@Test
 	public void testCalculateDewPoint() {
 		assertThat( WeatherUtil.calculateDewPoint( 32, 100 ), is( 32.0 ) );
 		assertThat( WeatherUtil.calculateDewPoint( 60, 100 ), is( 60.000000000000014 ) );
