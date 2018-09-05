@@ -25,34 +25,46 @@ public class MarkSoderquistWeatherPublisher extends HttpPublisher {
 
 		JsonGenerator generator = new JsonFactory().createGenerator( stream );
 		generator.writeStartObject();
-		generator.writeNumberField( "timestamp", System.currentTimeMillis() );
-		generator.writeNumberField( "temperature", (Float)data.get( WeatherDatumIdentifier.TEMPERATURE ).getValue() );
-		generator.writeNumberField( "pressure", (Float)data.get( WeatherDatumIdentifier.PRESSURE ).getValue() );
-		generator.writeNumberField( "humidity", (Float)data.get( WeatherDatumIdentifier.HUMIDITY ).getValue() );
+		writeLongField(data, generator, "timestamp", WeatherDatumIdentifier.TIMESTAMP );
+		writeDoubleField(data, generator,"temperature",  WeatherDatumIdentifier.TEMPERATURE );
+		writeDoubleField(data, generator,"pressure",  WeatherDatumIdentifier.PRESSURE );
+		writeDoubleField(data, generator,"humidity",  WeatherDatumIdentifier.HUMIDITY );
 
-		generator.writeNumberField( "dewPoint", (Float)data.get( WeatherDatumIdentifier.DEW_POINT ).getValue() );
-		generator.writeNumberField( "windChill", (Float)data.get( WeatherDatumIdentifier.WIND_CHILL ).getValue() );
-		generator.writeNumberField( "heatIndex", (Float)data.get( WeatherDatumIdentifier.HEAT_INDEX ).getValue() );
-		generator.writeNumberField( "pressureTrend", (Float)data.get( WeatherDatumIdentifier.PRESSURE_TREND ).getValue() );
+		writeDoubleField(data, generator,"dewPoint",  WeatherDatumIdentifier.DEW_POINT );
+		writeDoubleField(data, generator,"windChill",  WeatherDatumIdentifier.WIND_CHILL );
+		writeDoubleField(data, generator,"heatIndex",  WeatherDatumIdentifier.HEAT_INDEX );
+		writeDoubleField(data, generator,"pressureTrend",  WeatherDatumIdentifier.PRESSURE_TREND );
 
-		generator.writeNumberField( "windDirection", (Float)data.get( WeatherDatumIdentifier.WIND_DIRECTION ).getValue() );
-		generator.writeNumberField( "wind", (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_CURRENT ).getValue() );
+		writeDoubleField(data, generator,"windDirection",  WeatherDatumIdentifier.WIND_DIRECTION );
+		writeDoubleField(data, generator,"wind",  WeatherDatumIdentifier.WIND_SPEED_CURRENT );
 
-		generator.writeNumberField( "windTenMinMax", (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_10_MIN_MAX ).getValue() );
-		generator.writeNumberField( "windTenMinAvg", (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG ).getValue() );
-		generator.writeNumberField( "windTenMinMin", (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_10_MIN_MIN ).getValue() );
+		writeDoubleField(data, generator,"windTenMinMax",  WeatherDatumIdentifier.WIND_SPEED_10_MIN_MAX );
+		writeDoubleField(data, generator,"windTenMinAvg",  WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG );
+		writeDoubleField(data, generator,"windTenMinMin",  WeatherDatumIdentifier.WIND_SPEED_10_MIN_MIN );
 
-		generator.writeNumberField( "windTwoMinMax", (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_2_MIN_MAX ).getValue() );
-		generator.writeNumberField( "windTwoMinAvg", (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_2_MIN_AVG ).getValue() );
-		generator.writeNumberField( "windTwoMinMin", (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_2_MIN_MIN ).getValue() );
+		writeDoubleField(data, generator,"windTwoMinMax",  WeatherDatumIdentifier.WIND_SPEED_2_MIN_MAX );
+		writeDoubleField(data, generator,"windTwoMinAvg",  WeatherDatumIdentifier.WIND_SPEED_2_MIN_AVG );
+		writeDoubleField(data, generator,"windTwoMinMin",  WeatherDatumIdentifier.WIND_SPEED_2_MIN_MIN );
 
-		generator.writeNumberField( "rainTotalDaily", (Float)data.get( WeatherDatumIdentifier.RAIN_TOTAL_DAILY ).getValue() );
-		generator.writeNumberField( "rainRate", (Float)data.get( WeatherDatumIdentifier.RAIN_RATE ).getValue() );
+		writeDoubleField(data, generator,"rainTotalDaily",  WeatherDatumIdentifier.RAIN_TOTAL_DAILY );
+		writeDoubleField(data, generator,"rainRate",  WeatherDatumIdentifier.RAIN_RATE );
 
 		generator.writeEndObject();
 		generator.close();
 
 		return stream.toByteArray();
+	}
+
+	private void writeLongField( Map<WeatherDatumIdentifier, Measure<? extends Number, ? extends Quantity>> data, JsonGenerator generator, String name, WeatherDatumIdentifier identifier ) throws IOException {
+		Measure<? extends Number, ? extends Quantity> measure = data.get( identifier );
+		if( measure == null ) return;
+		generator.writeNumberField( name, (Long)measure.getValue() );
+	}
+
+	private void writeDoubleField( Map<WeatherDatumIdentifier, Measure<? extends Number, ? extends Quantity>> data, JsonGenerator generator, String name, WeatherDatumIdentifier identifier ) throws IOException {
+		Measure<? extends Number, ? extends Quantity> measure = data.get( identifier );
+		if( measure == null ) return;
+		generator.writeNumberField( name, (Double)measure.getValue() );
 	}
 
 }
