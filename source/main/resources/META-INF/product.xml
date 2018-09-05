@@ -18,12 +18,6 @@
 	</license>
 
 	<resources>
-		<java version="1.7" />
-		<pack uri="http://www.parallelsymmetry.com/download/dalton/package.xml?maven=http://code.parallelsymmetry.com/repo/psm/com/parallelsymmetry/dalton&amp;classifier=package&amp;type=jar" />
+		<java version="8" />
 	</resources>
-
-	<!-- FIXME It may be more correct to do a URL rewrite. -->
-	<!-- 
-	<update	uri="http://www.parallelsymmetry.com/download/dalton/package.xml?maven=http://mvn.parallelsymmetry.com/content/groups/sbc/com/southbranchcontrols/perform-sb&amp;classifier=package&amp;type=xml" />
-	-->
 </product>

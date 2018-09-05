@@ -33,7 +33,7 @@ public class DavisReader extends Worker {
 
 	private String port = "/dev/ttyUSB0";
 
-	private Collection<WeatherDataListener> listeners;
+	private Collection<WeatherStation> stations;
 
 	private int pollInterval = 2500;
 
@@ -50,7 +50,7 @@ public class DavisReader extends Worker {
 	public DavisReader() {
 		timer = new Timer( true );
 		setInterruptOnStop( true );
-		listeners = new CopyOnWriteArraySet<>();
+		stations = new CopyOnWriteArraySet<>();
 	}
 
 	@Override
@@ -124,12 +124,12 @@ public class DavisReader extends Worker {
 		}
 	}
 
-	public void addWeatherDataListener( WeatherDataListener listener ) {
-		listeners.add( listener );
+	public void addWeatherStation( WeatherStation station ) {
+		stations.add( station );
 	}
 
-	public void removeWeatherDataListener( WeatherDataListener listener ) {
-		listeners.remove( listener );
+	public void removeWeatherStation( WeatherStation station ) {
+		stations.remove( station );
 	}
 
 	@Override
@@ -306,8 +306,8 @@ public class DavisReader extends Worker {
 	}
 
 	private void fireWeatherEvent( WeatherDataEvent event ) {
-		for( WeatherDataListener listener : listeners ) {
-			listener.weatherDataEvent( event );
+		for( WeatherStation station : stations ) {
+			station.weatherDataEvent( event );
 		}
 	}
 

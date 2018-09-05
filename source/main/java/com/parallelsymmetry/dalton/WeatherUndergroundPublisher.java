@@ -14,18 +14,21 @@ import java.util.TimeZone;
 /**
  * @author ecco
  */
-public class WeatherUndergroundPublisher {
+public class WeatherUndergroundPublisher extends HttpPublisher {
 
-	private WeatherReader reader;
+	public static final String WUNDERGROUND_DATE_FORMAT = "yyyy-MM-dd+HH'%3A'mm'%3A'ss";
 
-	private WeatherStation station;
+	private Program program;
 
-	public WeatherUndergroundPublisher( WeatherReader reader, WeatherStation station ) {
-		this.reader = reader;
-		this.station = station;
+	public WeatherUndergroundPublisher( Program program ) {
+		this.program = program;
 	}
 
 	public int publish( Map<WeatherDatumIdentifier, Measure<?, ?>> data ) throws IOException {
+		return rest( "GET", generatePayload( data ) ).getCode();
+	}
+
+	public String generatePayload( Map<WeatherDatumIdentifier, Measure<?, ?>> data ) throws IOException {
 		// Example:
 		// http://rtupdate.wunderground.com/weatherstation/updateweatherstation.php?ID=KCASANFR5&PASSWORD=XXXXXX&dateutc=2000-01-01+10%3A32%3A35&winddir=230&windspeedmph=12&windgustmph=12&tempf=70&rainin=0&baromin=29.1&dewptf=68.2&humidity=90&weather=&clouds=&softwaretype=vws%20versionxx&action=updateraw&realtime=1&rtfreq=2.5
 
@@ -44,7 +47,7 @@ public class WeatherUndergroundPublisher {
 		builder.append( "&action=updateraw" );
 		builder.append( "&realtime=1&rtfreq=2.5" );
 		builder.append( "&dateutc=" );
-		builder.append( DateUtil.format( new Date(), WeatherStation.WUNDERGROUND_DATE_FORMAT, TimeZone.getTimeZone( "UTC" ) ) );
+		builder.append( DateUtil.format( new Date(), WUNDERGROUND_DATE_FORMAT, TimeZone.getTimeZone( "UTC" ) ) );
 
 		// Prepare basic data.
 		add( data, builder, WeatherDatumIdentifier.TEMPERATURE, "tempf", "0.0" );
@@ -67,12 +70,10 @@ public class WeatherUndergroundPublisher {
 
 		// Prepare software data.
 		builder.append( "&softwaretype=dalton" );
-		String release = reader.getCard().getRelease().toHumanString( DateUtil.DEFAULT_TIME_ZONE );
+		String release = program.getCard().getRelease().toHumanString( DateUtil.DEFAULT_TIME_ZONE );
 		builder.append( URLEncoder.encode( " " + release, TextUtil.DEFAULT_ENCODING ) );
 
-		WeatherStation.Response response = station.rest( "GET", builder.toString() );
-
-		return response.getCode();
+		return builder.toString();
 	}
 
 	private void add( Map<WeatherDatumIdentifier, Measure<?, ?>> data, StringBuilder builder, WeatherDatumIdentifier identifier, String key, String format ) {

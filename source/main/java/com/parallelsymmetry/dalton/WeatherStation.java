@@ -1,28 +1,22 @@
 package com.parallelsymmetry.dalton;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
 import com.parallelsymmetry.utility.log.Log;
 
 import javax.measure.DecimalMeasure;
 import javax.measure.Measure;
 import javax.measure.unit.NonSI;
-import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.Deque;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.CopyOnWriteArraySet;
 
-public class WeatherStation implements WeatherDataListener {
-
-	public static final String WUNDERGROUND_DATE_FORMAT = "yyyy-MM-dd+HH'%3A'mm'%3A'ss";
-
-	private WeatherReader reader;
+public class WeatherStation {
 
 	private Map<WeatherDatumIdentifier, Measure<?, ?>> data;
+
+	private Set<WeatherDataPublisher> publishers;
 
 	private TimedEventBuffer oneMinuteBuffer;
 
@@ -42,11 +36,12 @@ public class WeatherStation implements WeatherDataListener {
 
 	private Deque<WeatherDataEvent> oldThreeHourBuffer;
 
-	private WeatherUndergroundPublisher weatherUndergroundPublisher;
+	// TODO Move this out to Program
+	//private WeatherUndergroundPublisher weatherUndergroundPublisher;
 
-	public WeatherStation( WeatherReader reader ) {
-		this.reader = reader;
+	public WeatherStation() {
 		data = new ConcurrentHashMap<>();
+		publishers = new CopyOnWriteArraySet<>();
 
 		oneMinuteBuffer = new TimedEventBuffer( 60000 );
 		twoMinuteBuffer = new TimedEventBuffer( 120000 );
@@ -59,47 +54,26 @@ public class WeatherStation implements WeatherDataListener {
 		oldTenMinuteBuffer = new ConcurrentLinkedDeque<>();
 		oldThreeHourBuffer = new ConcurrentLinkedDeque<>();
 
-		weatherUndergroundPublisher = new WeatherUndergroundPublisher( reader, this );
+		//weatherUndergroundPublisher = new WeatherUndergroundPublisher( reader, this );
 	}
 
-//	public Map<WeatherDatumIdentifier, Measure<?, ?>> getData() {
-//		return data;
-//	}
-//
-//	public Deque<WeatherDataEvent> getOneMinuteBuffer() {
-//		return oneMinuteBuffer.getDeque();
-//	}
-//
-//	public Deque<WeatherDataEvent> getTwoMinuteBuffer() {
-//		return oldTwoMinuteBuffer;
-//	}
-//
-//	public Deque<WeatherDataEvent> getFiveMinuteBuffer() {
-//		return oldFiveMinuteBuffer;
-//	}
-//
-//	public Deque<WeatherDataEvent> getTenMinuteBuffer() {
-//		return oldTenMinuteBuffer;
-//	}
-//
-//	public Deque<WeatherDataEvent> getThreeHourBuffer() {
-//		return oldThreeHourBuffer;
-//	}
-//
-//	public Measure<?, ?> getMeasure( WeatherDatumIdentifier datum ) {
-//		return data.get( datum );
-//	}
+	public void addPublisher( WeatherDataPublisher publisher ) {
+		publishers.add( publisher );
+	}
 
-	@Override
+	public void removePublisher( WeatherDataPublisher publisher ) {
+		publishers.remove( publisher );
+	}
+
 	public void weatherDataEvent( WeatherDataEvent event ) {
 		for( WeatherDatum datum : event.getData() ) {
 			data.put( datum.getIdentifier(), datum.getMeasure() );
 		}
 
 		try {
-			float t = (Float)data.get( WeatherDatumIdentifier.TEMPERATURE ).getValue();
-			float h = (Float)data.get( WeatherDatumIdentifier.HUMIDITY ).getValue();
-			float w = (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG ).getValue();
+			double t = (Double)data.get( WeatherDatumIdentifier.TEMPERATURE ).getValue();
+			double h = (Double)data.get( WeatherDatumIdentifier.HUMIDITY ).getValue();
+			double w = (Double)data.get( WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG ).getValue();
 
 			// Calculate dew point.
 			data.put( WeatherDatumIdentifier.DEW_POINT, DecimalMeasure.valueOf( WeatherUtil.calculateDewPoint( t, h ), NonSI.FAHRENHEIT ) );
@@ -123,18 +97,19 @@ public class WeatherStation implements WeatherDataListener {
 			Log.write( Log.DETAIL, identifier, " = ", data.get( identifier ) );
 		}
 
-		Log.write( "Publishing metrics: T: " + data.get( WeatherDatumIdentifier.TEMPERATURE ).getValue() + "  W: " + data.get( WeatherDatumIdentifier.WIND_SPEED_2_MIN_AVG ).getValue() );
+		StringBuilder message = new StringBuilder( "Publishing metrics: " );
+		message.append( " T=" ).append(data.get( WeatherDatumIdentifier.TEMPERATURE ).getValue() );
+		message.append( " H=" ).append(data.get( WeatherDatumIdentifier.HUMIDITY ).getValue() );
+		message.append( " P=" ).append(data.get( WeatherDatumIdentifier.PRESSURE ).getValue() );
+		message.append( " W=" ).append(data.get( WeatherDatumIdentifier.WIND_SPEED_CURRENT ).getValue() );
+		Log.write( message );
 
-		try {
-			weatherUndergroundPublisher.publish( data );
-		} catch( Throwable throwable ) {
-			Log.write( throwable );
-		}
-
-		try {
-			updateMarkSoderquistNetWeather();
-		} catch( Throwable throwable ) {
-			Log.write( throwable );
+		for( WeatherDataPublisher publisher : publishers ) {
+			try {
+				publisher.publish( data );
+			} catch( Throwable throwable ) {
+				Log.write( throwable );
+			}
 		}
 	}
 
@@ -188,119 +163,43 @@ public class WeatherStation implements WeatherDataListener {
 		data.put( WeatherDatumIdentifier.PRESSURE_TREND, DecimalMeasure.valueOf( pressureTrend, NonSI.INCH_OF_MERCURY.divide( NonSI.HOUR ) ) );
 	}
 
-	private int updateMarkSoderquistNetWeather() throws IOException {
-		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-
-		JsonGenerator generator = new JsonFactory().createGenerator( stream );
-		generator.writeStartObject();
-		generator.writeNumberField( "timestamp", System.currentTimeMillis() );
-		generator.writeNumberField( "temperature", (Float)data.get( WeatherDatumIdentifier.TEMPERATURE ).getValue() );
-		generator.writeNumberField( "pressure", (Float)data.get( WeatherDatumIdentifier.PRESSURE ).getValue() );
-		generator.writeNumberField( "humidity", (Float)data.get( WeatherDatumIdentifier.HUMIDITY ).getValue() );
-
-		generator.writeNumberField( "dewPoint", (Float)data.get( WeatherDatumIdentifier.DEW_POINT ).getValue() );
-		generator.writeNumberField( "windChill", (Float)data.get( WeatherDatumIdentifier.WIND_CHILL ).getValue() );
-		generator.writeNumberField( "heatIndex", (Float)data.get( WeatherDatumIdentifier.HEAT_INDEX ).getValue() );
-		generator.writeNumberField( "pressureTrend", (Float)data.get( WeatherDatumIdentifier.PRESSURE_TREND ).getValue() );
-
-		generator.writeNumberField( "windDirection", (Float)data.get( WeatherDatumIdentifier.WIND_DIRECTION ).getValue() );
-		generator.writeNumberField( "wind", (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_CURRENT ).getValue() );
-
-		generator.writeNumberField( "windTenMinMax", (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_10_MIN_MAX ).getValue() );
-		generator.writeNumberField( "windTenMinAvg", (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG ).getValue() );
-		generator.writeNumberField( "windTenMinMin", (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_10_MIN_MIN ).getValue() );
-
-		generator.writeNumberField( "windTwoMinMax", (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_2_MIN_MAX ).getValue() );
-		generator.writeNumberField( "windTwoMinAvg", (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_2_MIN_AVG ).getValue() );
-		generator.writeNumberField( "windTwoMinMin", (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_2_MIN_MIN ).getValue() );
-
-		generator.writeNumberField( "rainTotalDaily", (Float)data.get( WeatherDatumIdentifier.RAIN_TOTAL_DAILY ).getValue() );
-		generator.writeNumberField( "rainRate", (Float)data.get( WeatherDatumIdentifier.RAIN_RATE ).getValue() );
-
-		generator.writeEndObject();
-		generator.close();
-
-		Map<String, String> headers = new HashMap<>();
-		headers.put( "content-type", "application/json" );
-		headers.put( "Authorization", "Basic ZGFsdG9uOkRvNUpwTW84ejVoU3hVaTQ=" );
-
-		return rest( "PUT", "http://mark.soderquist.net/weather/api/station?id=bluewing", headers, stream.toByteArray() ).getCode();
-	}
-
-	Response rest( String method, String url ) throws IOException {
-		return rest( method, url, null );
-	}
-
-	Response rest( String method, String url, byte[] request ) throws IOException {
-		return rest( method, url, null, request );
-	}
-
-	Response rest( String method, String url, Map<String, String> headers, byte[] request ) throws IOException {
-		String USER_AGENT = "Mozilla/5.0";
-
-		Log.write( Log.TRACE, "Sending to: " + url );
-
-		// Set up the request.
-		HttpURLConnection connection = (HttpURLConnection)new URL( url ).openConnection();
-		connection.setConnectTimeout( 5000 );
-		connection.setReadTimeout( 5000 );
-		connection.setRequestMethod( method );
-		connection.setRequestProperty( "User-Agent", USER_AGENT );
-		connection.setAllowUserInteraction( false );
-		if( headers != null ) {
-			for( String key : headers.keySet() ) {
-				connection.setRequestProperty( key, headers.get( key ) );
-			}
-		}
-		if( request != null ) {
-			connection.setDoOutput( true );
-			OutputStream output = connection.getOutputStream();
-			try {
-				output.write( request );
-			} finally {
-				if( output != null ) output.close();
-			}
-		}
-
-		// Handle the response.
-		try {
-			// Get the response code.
-			int responseCode = connection.getResponseCode();
-
-			// Read the response.
-			String inputLine;
-			StringBuilder response = new StringBuilder();
-			BufferedReader input = new BufferedReader( new InputStreamReader( connection.getInputStream() ) );
-			while( (inputLine = input.readLine()) != null ) {
-				response.append( inputLine );
-			}
-			input.close();
-
-			return new Response( responseCode, response.toString() );
-		} finally {
-			if( connection != null ) connection.disconnect();
-		}
-	}
-
-	class Response {
-
-		private int code;
-
-		private String content;
-
-		public Response( int code, String content ) {
-			this.code = code;
-			this.content = content;
-		}
-
-		public int getCode() {
-			return code;
-		}
-
-		public String getContent() {
-			return content;
-		}
-
-	}
+//	private int updateMarkSoderquistNetWeather() throws IOException {
+//		ByteArrayOutputStream stream = new ByteArrayOutputStream();
+//
+//		JsonGenerator generator = new JsonFactory().createGenerator( stream );
+//		generator.writeStartObject();
+//		generator.writeNumberField( "timestamp", System.currentTimeMillis() );
+//		generator.writeNumberField( "temperature", (Float)data.get( WeatherDatumIdentifier.TEMPERATURE ).getValue() );
+//		generator.writeNumberField( "pressure", (Float)data.get( WeatherDatumIdentifier.PRESSURE ).getValue() );
+//		generator.writeNumberField( "humidity", (Float)data.get( WeatherDatumIdentifier.HUMIDITY ).getValue() );
+//
+//		generator.writeNumberField( "dewPoint", (Float)data.get( WeatherDatumIdentifier.DEW_POINT ).getValue() );
+//		generator.writeNumberField( "windChill", (Float)data.get( WeatherDatumIdentifier.WIND_CHILL ).getValue() );
+//		generator.writeNumberField( "heatIndex", (Float)data.get( WeatherDatumIdentifier.HEAT_INDEX ).getValue() );
+//		generator.writeNumberField( "pressureTrend", (Float)data.get( WeatherDatumIdentifier.PRESSURE_TREND ).getValue() );
+//
+//		generator.writeNumberField( "windDirection", (Float)data.get( WeatherDatumIdentifier.WIND_DIRECTION ).getValue() );
+//		generator.writeNumberField( "wind", (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_CURRENT ).getValue() );
+//
+//		generator.writeNumberField( "windTenMinMax", (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_10_MIN_MAX ).getValue() );
+//		generator.writeNumberField( "windTenMinAvg", (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG ).getValue() );
+//		generator.writeNumberField( "windTenMinMin", (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_10_MIN_MIN ).getValue() );
+//
+//		generator.writeNumberField( "windTwoMinMax", (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_2_MIN_MAX ).getValue() );
+//		generator.writeNumberField( "windTwoMinAvg", (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_2_MIN_AVG ).getValue() );
+//		generator.writeNumberField( "windTwoMinMin", (Float)data.get( WeatherDatumIdentifier.WIND_SPEED_2_MIN_MIN ).getValue() );
+//
+//		generator.writeNumberField( "rainTotalDaily", (Float)data.get( WeatherDatumIdentifier.RAIN_TOTAL_DAILY ).getValue() );
+//		generator.writeNumberField( "rainRate", (Float)data.get( WeatherDatumIdentifier.RAIN_RATE ).getValue() );
+//
+//		generator.writeEndObject();
+//		generator.close();
+//
+//		Map<String, String> headers = new HashMap<>();
+//		headers.put( "content-type", "application/json" );
+//		headers.put( "Authorization", "Basic ZGFsdG9uOkRvNUpwTW84ejVoU3hVaTQ=" );
+//
+//		return rest( "PUT", "http://mark.soderquist.net/weather/api/station?id=bluewing", headers, stream.toByteArray() ).getCode();
+//	}
 
 }

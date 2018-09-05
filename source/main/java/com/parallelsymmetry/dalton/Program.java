@@ -3,20 +3,21 @@ package com.parallelsymmetry.dalton;
 import com.parallelsymmetry.service.Service;
 import com.parallelsymmetry.utility.Parameters;
 
-public class WeatherReader extends Service {
+public class Program extends Service {
 
 	private WeatherStation station;
 
 	private DavisReader reader;
 
 	public static final void main( String[] commands ) {
-		new WeatherReader().process( commands );
+		new Program().process( commands );
 	}
 
-	public WeatherReader() {
-		station = new WeatherStation( this );
+	public Program() {
 		reader = new DavisReader();
-		reader.addWeatherDataListener( station );
+		reader.addWeatherStation( station = new WeatherStation() );
+		station.addPublisher( new MarkSoderquistWeatherPublisher() );
+		station.addPublisher( new WeatherUndergroundPublisher( this ) );
 	}
 
 	public WeatherStation getWeatherStation() {
