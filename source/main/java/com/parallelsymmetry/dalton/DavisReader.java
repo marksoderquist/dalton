@@ -1,11 +1,9 @@
 package com.parallelsymmetry.dalton;
 
 import com.parallelsymmetry.utility.EnumerationIterator;
-import com.parallelsymmetry.utility.IoPump;
 import com.parallelsymmetry.utility.TextUtil;
 import com.parallelsymmetry.utility.ThreadUtil;
 import com.parallelsymmetry.utility.agent.Worker;
-import com.parallelsymmetry.utility.comm.SerialAgent;
 import com.parallelsymmetry.utility.log.Log;
 import purejavacomm.CommPortIdentifier;
 import purejavacomm.SerialPort;
@@ -81,49 +79,49 @@ public class DavisReader extends Worker implements WeatherDataReader {
 		}
 	}
 
-	public void runX() {
-		pollingThread = Thread.currentThread();
-		listPortIdentifiers();
-
-		IoPump reader = null;
-		IoPump console = null;
-
-		try {
-			SerialAgent agent = new SerialAgent( "Davis Reader", port, 19200, SerialPort.DATABITS_8, SerialPort.PARITY_NONE, SerialPort.STOPBITS_1 );
-			agent.setReconnectDelay( 5000 );
-			agent.setStopOnException( true );
-			agent.start();
-
-			Log.write( Log.INFO, agent.getName(), " running on port ", port );
-
-			if( useConsole ) {
-				reader = new IoPump( agent.getInputStream(), new WatcherOutputStream( System.out ) );
-				reader.start();
-
-				console = new IoPump( System.in, agent.getOutputStream() );
-				console.start();
-			} else {
-				while( isExecutable() ) {
-					try {
-						agent.start();
-						getData( agent );
-						lastPoll = System.currentTimeMillis();
-					} catch( TimeoutException exception ) {
-						Log.write( exception );
-					} finally {
-						agent.stop();
-					}
-					ThreadUtil.pause( pollInterval );
-				}
-			}
-		} catch( Throwable throwable ) {
-			Log.write( throwable );
-		} finally {
-			if( reader != null ) reader.stop();
-			if( console != null ) console.stop();
-			Log.write( "David Reader exiting..." );
-		}
-	}
+//	public void runX() {
+//		pollingThread = Thread.currentThread();
+//		listPortIdentifiers();
+//
+//		IoPump reader = null;
+//		IoPump console = null;
+//
+//		try {
+//			SerialAgent agent = new SerialAgent( "Davis Reader", port, 19200, SerialPort.DATABITS_8, SerialPort.PARITY_NONE, SerialPort.STOPBITS_1 );
+//			agent.setReconnectDelay( 5000 );
+//			agent.setStopOnException( true );
+//			agent.start();
+//
+//			Log.write( Log.INFO, agent.getName(), " running on port ", port );
+//
+//			if( useConsole ) {
+//				reader = new IoPump( agent.getInputStream(), new WatcherOutputStream( System.out ) );
+//				reader.start();
+//
+//				console = new IoPump( System.in, agent.getOutputStream() );
+//				console.start();
+//			} else {
+//				while( isExecutable() ) {
+//					try {
+//						agent.start();
+//						getData( agent );
+//						lastPoll = System.currentTimeMillis();
+//					} catch( TimeoutException exception ) {
+//						Log.write( exception );
+//					} finally {
+//						agent.stop();
+//					}
+//					ThreadUtil.pause( pollInterval );
+//				}
+//			}
+//		} catch( Throwable throwable ) {
+//			Log.write( throwable );
+//		} finally {
+//			if( reader != null ) reader.stop();
+//			if( console != null ) console.stop();
+//			Log.write( "David Reader exiting..." );
+//		}
+//	}
 
 	@Override
 	public void addWeatherStation( WeatherStation station ) {
@@ -147,17 +145,17 @@ public class DavisReader extends Worker implements WeatherDataReader {
 		}
 	}
 
-	private void clearData( SerialAgent agent ) throws IOException {
-		PrintStream output = new PrintStream( agent.getOutputStream() );
-		output.println( "CLRDATA" );
-
-		byte[] buffer = new byte[ 8 ];
-		BufferedInputStream input = new BufferedInputStream( agent.getInputStream() );
-
-		int read = 0;
-		int count = read;
-		while( count < 1 && (read = input.read( buffer )) > -1 ) count += read;
-	}
+//	private void clearData( SerialAgent agent ) throws IOException {
+//		PrintStream output = new PrintStream( agent.getOutputStream() );
+//		output.println( "CLRDATA" );
+//
+//		byte[] buffer = new byte[ 8 ];
+//		BufferedInputStream input = new BufferedInputStream( agent.getInputStream() );
+//
+//		int read = 0;
+//		int count = read;
+//		while( count < 1 && (read = input.read( buffer )) > -1 ) count += read;
+//	}
 
 	private int read( InputStream input, byte[] data, int offset, int length, long timeout ) throws Exception {
 		int read;
@@ -177,9 +175,9 @@ public class DavisReader extends Worker implements WeatherDataReader {
 		return count;
 	}
 
-	private void getData( SerialAgent agent ) throws Exception {
-		getData( agent.getOutputStream(), agent.getInputStream() );
-	}
+//	private void getData( SerialAgent agent ) throws Exception {
+//		getData( agent.getOutputStream(), agent.getInputStream() );
+//	}
 
 	private void getData( OutputStream outputStream, InputStream inputStream ) throws Exception {
 		PrintStream output = new PrintStream( outputStream );
