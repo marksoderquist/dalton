@@ -22,7 +22,8 @@ import java.util.concurrent.TimeoutException;
 /**
  * Davis weather station reader. This reader is derived from the <a href= "http://www.davisnet.com/support/weather/download/VantageSerialProtocolDocs_v261.pdf" >Davis weather station serial protocol</a>.
  * <p>
- * This reader uses purejavacomm as the serial library. In order to use purejavacomm the following need to be configured: <ol> <li>The user running the program must have read access to the ports</li> </ol> On Debian and its derivatives the
+ * This reader uses purejavacomm as the serial library. In order to use purejavacomm, the user
+ * running the program must have read access to the ports. On Debian and its derivatives the
  * user should be assigned to the dialout group to have read access to the ports.
  *
  * @author mvsoder
