@@ -215,43 +215,43 @@ public class DavisReader extends Worker implements WeatherDataReader {
 
 		// Barometer
 		int barRaw = getUnsignedByte( buffer[ 7 ] ) + (getUnsignedByte( buffer[ 8 ] ) << 8);
-		float pressure = barRaw == 0x7fff ? Float.NaN : barRaw / 1000.0f;
+		double pressure = barRaw == 0x7fff ? Float.NaN : barRaw / 1000.0f;
 
 		// Inside temperature
 		int tempInsideRaw = getUnsignedByte( buffer[ 9 ] ) + (getUnsignedByte( buffer[ 10 ] ) << 8);
-		float tempInside = tempInsideRaw == 0x7fff ? Float.NaN : tempInsideRaw / 10.0f;
+		double tempInside = tempInsideRaw == 0x7fff ? Float.NaN : tempInsideRaw / 10.0f;
 
 		// Inside humidity
 		int humidInsideRaw = getUnsignedByte( buffer[ 11 ] );
-		float humidInside = humidInsideRaw == 0xff ? Float.NaN : humidInsideRaw;
+		double humidInside = humidInsideRaw == 0xff ? Float.NaN : humidInsideRaw;
 
 		// Outside temperature
 		int tempOutsideRaw = getUnsignedByte( buffer[ 12 ] ) + ((buffer[ 13 ]) << 8);
-		float tempOutside = tempOutsideRaw == 0x7fff ? Float.NaN : tempOutsideRaw / 10.0f;
+		double tempOutside = tempOutsideRaw == 0x7fff ? Float.NaN : tempOutsideRaw / 10.0f;
 
 		// Wind speed
 		int windSpeedRaw = getUnsignedByte( buffer[ 14 ] );
-		float windSpeed = windSpeedRaw == 0xff ? Float.NaN : windSpeedRaw;
+		double windSpeed = windSpeedRaw == 0xff ? Float.NaN : windSpeedRaw;
 
 		// Wind speed 10 minute average
 		int windSpeedTenMinAvgRaw = getUnsignedByte( buffer[ 15 ] );
-		float windSpeedTenMinAvg = windSpeedTenMinAvgRaw == 0xff ? Float.NaN : windSpeedTenMinAvgRaw;
+		double windSpeedTenMinAvg = windSpeedTenMinAvgRaw == 0xff ? Float.NaN : windSpeedTenMinAvgRaw;
 
 		// Wind direction
 		int windDirectionRaw = getUnsignedByte( buffer[ 16 ] ) + (getUnsignedByte( buffer[ 17 ] ) << 8);
-		float windDirection = windDirectionRaw == 0x7fff ? Float.NaN : windDirectionRaw;
+		double windDirection = windDirectionRaw == 0x7fff ? Float.NaN : windDirectionRaw;
 
 		// Outside humidity
 		int humidOutsideRaw = getUnsignedByte( buffer[ 33 ] );
-		float humidOutside = humidOutsideRaw == 0xff ? Float.NaN : humidOutsideRaw;
+		double humidOutside = humidOutsideRaw == 0xff ? Float.NaN : humidOutsideRaw;
 
 		// Rain rate
 		int rainRateRaw = getUnsignedByte( buffer[ 41 ] ) + (getUnsignedByte( buffer[ 42 ] ) << 8);
-		float rainRate = rainRateRaw == 0xffff ? Float.NaN : rainRateRaw / 100.0f;
+		double rainRate = rainRateRaw == 0xffff ? Float.NaN : rainRateRaw / 100.0f;
 
 		// Daily rain total
 		int rainTotalDailyRaw = getUnsignedByte( buffer[ 50 ] ) + (getUnsignedByte( buffer[ 51 ] ) << 8);
-		float rainTotalDaily = rainTotalDailyRaw == 0x7fff ? Float.NaN : rainTotalDailyRaw / 100.0f;
+		double rainTotalDaily = rainTotalDailyRaw == 0x7fff ? Float.NaN : rainTotalDailyRaw / 100.0f;
 
 		//		Log.write();
 		//		Log.write( "Read: ", TextUtil.toPrintableString( buffer, 0, 99 ) );
