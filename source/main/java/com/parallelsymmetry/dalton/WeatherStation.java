@@ -39,6 +39,26 @@ public class WeatherStation {
 		threeHourBuffer = new TimedEventBuffer( 10800000 );
 	}
 
+	public TimedEventBuffer getOneMinuteBuffer() {
+		return oneMinuteBuffer;
+	}
+
+	public TimedEventBuffer getTwoMinuteBuffer() {
+		return twoMinuteBuffer;
+	}
+
+	public TimedEventBuffer getFiveMinuteBuffer() {
+		return fiveMinuteBuffer;
+	}
+
+	public TimedEventBuffer getTenMinuteBuffer() {
+		return tenMinuteBuffer;
+	}
+
+	public TimedEventBuffer getThreeHourBuffer() {
+		return threeHourBuffer;
+	}
+
 	public void addPublisher( WeatherDataPublisher publisher ) {
 		publishers.add( publisher );
 	}
@@ -55,6 +75,13 @@ public class WeatherStation {
 			data.put( datum.getIdentifier(), datum.getMeasure() );
 		}
 
+		// Update statistics
+		update1MinStatistics( event );
+		update2MinStatistics( event );
+		update5MinStatistics( event );
+		update10MinStatistics( event );
+		update3HourStatistics( event );
+
 		double t = (Double)data.get( WeatherDatumIdentifier.TEMPERATURE ).getValue();
 		double h = (Double)data.get( WeatherDatumIdentifier.HUMIDITY ).getValue();
 		double w = (Double)data.get( WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG ).getValue();
@@ -68,17 +95,10 @@ public class WeatherStation {
 		// Calculate heat index
 		data.put( WeatherDatumIdentifier.HEAT_INDEX, DecimalMeasure.valueOf( WeatherUtil.calculateHeatIndex( t, h ), NonSI.FAHRENHEIT ) );
 
-		// Update statistics
-		update1MinStatistics( event );
-		update2MinStatistics( event );
-		update5MinStatistics( event );
-		update10MinStatistics( event );
-		update3HourStatistics( event );
-
 		// Publish data to publishers
 		for( WeatherDataPublisher publisher : publishers ) {
 			try {
-				publisher.publish( data );
+				publisher.publish( this, data );
 			} catch( Throwable throwable ) {
 				Log.write( throwable );
 			}

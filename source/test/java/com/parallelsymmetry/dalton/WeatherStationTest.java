@@ -73,7 +73,7 @@ public class WeatherStationTest extends TestCase {
 		}
 
 		@Override
-		public int publish( Map<WeatherDatumIdentifier, Measure<? extends Number, ? extends Quantity>> data ) throws IOException {
+		public int publish( WeatherStation station, Map<WeatherDatumIdentifier, Measure<? extends Number, ? extends Quantity>> data ) throws IOException {
 			events.add( data );
 			return 200;
 		}

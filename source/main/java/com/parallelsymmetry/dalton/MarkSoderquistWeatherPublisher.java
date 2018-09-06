@@ -13,7 +13,7 @@ import java.util.Map;
 public class MarkSoderquistWeatherPublisher extends HttpPublisher {
 
 	@Override
-	public int publish( Map<WeatherDatumIdentifier, Measure<? extends Number, ? extends Quantity>> data ) throws IOException {
+	public int publish( WeatherStation station, Map<WeatherDatumIdentifier, Measure<? extends Number, ? extends Quantity>> data ) throws IOException {
 		Map<String, String> headers = new HashMap<>();
 		headers.put( "content-type", "application/json" );
 		headers.put( "Authorization", "Basic ZGFsdG9uOkRvNUpwTW84ejVoU3hVaTQ=" );

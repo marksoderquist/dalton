@@ -1,16 +1,12 @@
 package com.parallelsymmetry.dalton;
 
-import com.parallelsymmetry.utility.math.Statistics;
-
-import java.util.Deque;
-
 public class WeatherUtil {
 
 	public static double calculateDewPoint( double t, double h ) {
 		double b = 18.678;
 		double c = 470.3;
-		double g = Math.log( h / 100f ) + ( b * t / ( c + t ) );
-		return ( c * g ) / ( b - g );
+		double g = Math.log( h / 100f ) + (b * t / (c + t));
+		return (c * g) / (b - g);
 	}
 
 	public static double calculateWindChill( double t, double w ) {
@@ -46,23 +42,12 @@ public class WeatherUtil {
 	 * @param buffer The weather data event buffer
 	 * @return If the wind speed is a gust relative to the buffer data
 	 */
-	public static boolean isGust( double wind, Deque<WeatherDataEvent> buffer ) {
-		// Collect the wind data from the buffer.
-		int index = 0;
-		double[] values = new double[buffer.size()];
-		for( WeatherDataEvent event : buffer ) {
-			for( WeatherDatum datum : event.getData() ) {
-				if( WeatherDatumIdentifier.WIND_SPEED_CURRENT == datum.getIdentifier() ) {
-					values[index] = (Double)datum.getMeasure().getValue();
-					index++;
-				}
-			}
-		}
+	public static boolean isGust( double wind, TimedEventBuffer buffer ) {
+		return isGust( wind, buffer.getAverage( WeatherDatumIdentifier.WIND_SPEED_CURRENT ) );
+	}
 
-		// Calculate the wind average.
-		double mean = Statistics.mean( values );
-
-		return wind - mean > 10;
+	public static boolean isGust( double wind, double windAverage ) {
+		return wind - windAverage > 10;
 	}
 
 }

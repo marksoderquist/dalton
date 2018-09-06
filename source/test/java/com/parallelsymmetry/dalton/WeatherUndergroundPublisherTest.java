@@ -28,6 +28,8 @@ public class WeatherUndergroundPublisherTest {
 	@Test
 	public void testPayload() throws Exception {
 		Program program = new Program();
+
+		WeatherStation station = new WeatherStation();
 		WeatherUndergroundPublisher publisher = new WeatherUndergroundPublisher( program );
 		long timestamp = System.currentTimeMillis();
 		String release = program.getCard().getRelease().toHumanString( DateUtil.DEFAULT_TIME_ZONE );
@@ -54,7 +56,7 @@ public class WeatherUndergroundPublisherTest {
 		builder.append( "&softwaretype=dalton" ).append( URLEncoder.encode( " " + release, TextUtil.DEFAULT_ENCODING ) );
 
 		// Test generated payload
-		assertThat( publisher.generatePayload( data ), is( builder.toString() ) );
+		assertThat( publisher.generatePayload( station, data ), is( builder.toString() ) );
 	}
 
 }

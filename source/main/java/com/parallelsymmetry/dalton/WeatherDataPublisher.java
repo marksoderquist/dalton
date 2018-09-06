@@ -7,6 +7,6 @@ import java.util.Map;
 
 public interface WeatherDataPublisher {
 
-	int publish( Map<WeatherDatumIdentifier, Measure<? extends Number, ? extends Quantity>> data ) throws IOException;
+	int publish( WeatherStation station, Map<WeatherDatumIdentifier, Measure<? extends Number, ? extends Quantity>> data ) throws IOException;
 
 }

@@ -25,11 +25,11 @@ public class WeatherUndergroundPublisher extends HttpPublisher {
 		this.program = program;
 	}
 
-	public int publish( Map<WeatherDatumIdentifier, Measure<? extends Number, ? extends Quantity>> data ) throws IOException {
-		return rest( "GET", generatePayload( data ) ).getCode();
+	public int publish( WeatherStation station, Map<WeatherDatumIdentifier, Measure<? extends Number, ? extends Quantity>> data ) throws IOException {
+		return rest( "GET", generatePayload( station, data ) ).getCode();
 	}
 
-	public String generatePayload( Map<WeatherDatumIdentifier, Measure<? extends Number, ? extends Quantity>> data ) throws IOException {
+	public String generatePayload( WeatherStation station, Map<WeatherDatumIdentifier, Measure<? extends Number, ? extends Quantity>> data ) throws IOException {
 		// Example:
 		// http://rtupdate.wunderground.com/weatherstation/updateweatherstation.php?ID=KCASANFR5&PASSWORD=XXXXXX&dateutc=2000-01-01+10%3A32%3A35&winddir=230&windspeedmph=12&windgustmph=12&tempf=70&rainin=0&baromin=29.1&dewptf=68.2&humidity=90&weather=&clouds=&softwaretype=vws%20versionxx&action=updateraw&realtime=1&rtfreq=2.5
 
@@ -64,13 +64,9 @@ public class WeatherUndergroundPublisher extends HttpPublisher {
 
 		// Prepare wind gust data
 		// This uses the five minute data because Weather Underground only uses one value every five minutes
-		Measure<? extends Number, ? extends Quantity> waMeasure = data.get( WeatherDatumIdentifier.WIND_SPEED_5_MIN_AVG );
-		Measure<? extends Number, ? extends Quantity> wxMeasure = data.get( WeatherDatumIdentifier.WIND_SPEED_5_MIN_MAX );
-		if( waMeasure != null && wxMeasure != null ) {
-			double wa = (Double)waMeasure.getValue();
-			double wx = (Double)wxMeasure.getValue();
-			if( wx - wa > 10 ) add( builder, wx, "windgustmph", "0" );
-		}
+		double wa = station.getFiveMinuteBuffer().getAverage( WeatherDatumIdentifier.WIND_SPEED_CURRENT );
+		double wx = station.getFiveMinuteBuffer().getMaximum( WeatherDatumIdentifier.WIND_SPEED_CURRENT );
+		if( WeatherUtil.isGust( wx, wa ))add( builder, wx, "windgustmph", "0" );
 
 		// Prepare rain data
 		add( data, builder, WeatherDatumIdentifier.RAIN_RATE, "rainin", "0.00" );
