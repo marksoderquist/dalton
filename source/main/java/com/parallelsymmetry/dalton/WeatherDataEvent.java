@@ -1,9 +1,8 @@
 package com.parallelsymmetry.dalton;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Map;
+import javax.measure.DecimalMeasure;
+import javax.measure.unit.SI;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class WeatherDataEvent {
@@ -15,28 +14,30 @@ public class WeatherDataEvent {
 	private Map<WeatherDatumIdentifier, WeatherDatum> map;
 
 	public WeatherDataEvent( WeatherDatum... data ) {
-		this( new Date(), data );
+		this( System.currentTimeMillis(), data );
 	}
 
-	public WeatherDataEvent( Date timestamp, WeatherDatum... data ) {
-		this.timestamp = timestamp;
-		this.data = Arrays.asList( data );
+	public WeatherDataEvent( long timestamp, WeatherDatum... data ) {
 		this.map = new ConcurrentHashMap<>();
+		this.data = new ArrayList<>();
+		map.put( WeatherDatumIdentifier.TIMESTAMP, new WeatherDatum( WeatherDatumIdentifier.TIMESTAMP, DecimalMeasure.valueOf( timestamp, SI.MILLI( SI.SECOND ) ) ) );
 		for( WeatherDatum datum : data ) {
+			if( datum == null ) continue;
 			this.map.put( datum.getIdentifier(), datum );
+			this.data.add( datum );
 		}
 	}
 
-	public Date getTimestamp() {
-		return timestamp;
-	}
-
-	public Collection<WeatherDatum> getData() {
-		return data;
+	public long getTimestamp() {
+		return (Long)map.get( WeatherDatumIdentifier.TIMESTAMP ).getMeasure().getValue();
 	}
 
 	public WeatherDatum get( WeatherDatumIdentifier identifier ) {
 		return map.get( identifier );
+	}
+
+	public Collection<WeatherDatum> getData() {
+		return data;
 	}
 
 }

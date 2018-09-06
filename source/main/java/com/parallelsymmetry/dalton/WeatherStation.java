@@ -68,7 +68,7 @@ public class WeatherStation {
 	}
 
 	public void weatherDataEvent( WeatherDataEvent event ) {
-		data.put( WeatherDatumIdentifier.TIMESTAMP, DecimalMeasure.valueOf( event.getTimestamp().getTime(), SI.MILLI( SI.SECOND ) ) );
+		data.put( WeatherDatumIdentifier.TIMESTAMP, DecimalMeasure.valueOf( event.getTimestamp(), SI.MILLI( SI.SECOND ) ) );
 
 		// Store event data
 		for( WeatherDatum datum : event.getData() ) {
