@@ -21,7 +21,7 @@ public class WeatherStationTest extends WeatherTestCase {
 		assertThat( (Double)collector.getEvents().get( 0 ).get( WeatherDatumIdentifier.PRESSURE ).getValue(), is( 29.92 ) );
 		assertThat( (Double)collector.getEvents().get( 0 ).get( WeatherDatumIdentifier.HUMIDITY ).getValue(), is( 25.0 ) );
 
-		assertThat( (Double)collector.getEvents().get( 0 ).get( WeatherDatumIdentifier.WIND_SPEED_CURRENT ).getValue(), is( 10.0 ) );
+		assertThat( (Double)collector.getEvents().get( 0 ).get( WeatherDatumIdentifier.WIND_SPEED ).getValue(), is( 10.0 ) );
 		assertThat( (Double)collector.getEvents().get( 0 ).get( WeatherDatumIdentifier.WIND_DIRECTION ).getValue(), is( 0.0 ) );
 		assertThat( (Double)collector.getEvents().get( 0 ).get( WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG ).getValue(), is( 10.0 ) );
 

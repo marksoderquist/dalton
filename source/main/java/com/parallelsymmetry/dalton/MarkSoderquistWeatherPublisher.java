@@ -25,29 +25,37 @@ public class MarkSoderquistWeatherPublisher extends HttpPublisher {
 
 		JsonGenerator generator = new JsonFactory().createGenerator( stream );
 		generator.writeStartObject();
-		writeLongField(data, generator, "timestamp", WeatherDatumIdentifier.TIMESTAMP );
-		writeDoubleField(data, generator,"temperature",  WeatherDatumIdentifier.TEMPERATURE );
-		writeDoubleField(data, generator,"pressure",  WeatherDatumIdentifier.PRESSURE );
-		writeDoubleField(data, generator,"humidity",  WeatherDatumIdentifier.HUMIDITY );
 
-		writeDoubleField(data, generator,"dewPoint",  WeatherDatumIdentifier.DEW_POINT );
-		writeDoubleField(data, generator,"windChill",  WeatherDatumIdentifier.WIND_CHILL );
-		writeDoubleField(data, generator,"heatIndex",  WeatherDatumIdentifier.HEAT_INDEX );
-		writeDoubleField(data, generator,"pressureTrend",  WeatherDatumIdentifier.PRESSURE_TREND );
+		writeLongField( data, generator, "timestamp", WeatherDatumIdentifier.TIMESTAMP );
+		writeDoubleField( data, generator, "temperature", WeatherDatumIdentifier.TEMPERATURE );
+		writeDoubleField( data, generator, "pressure", WeatherDatumIdentifier.PRESSURE );
+		writeDoubleField( data, generator, "humidity", WeatherDatumIdentifier.HUMIDITY );
 
-		writeDoubleField(data, generator,"windDirection",  WeatherDatumIdentifier.WIND_DIRECTION );
-		writeDoubleField(data, generator,"wind",  WeatherDatumIdentifier.WIND_SPEED_CURRENT );
+		writeDoubleField( data, generator, "dewPoint", WeatherDatumIdentifier.DEW_POINT );
+		writeDoubleField( data, generator, "windChill", WeatherDatumIdentifier.WIND_CHILL );
+		writeDoubleField( data, generator, "heatIndex", WeatherDatumIdentifier.HEAT_INDEX );
 
-		writeDoubleField(data, generator,"windTenMinMax",  WeatherDatumIdentifier.WIND_SPEED_10_MIN_MAX );
-		writeDoubleField(data, generator,"windTenMinAvg",  WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG );
-		writeDoubleField(data, generator,"windTenMinMin",  WeatherDatumIdentifier.WIND_SPEED_10_MIN_MIN );
+		writeDoubleField( data, generator, "wind", WeatherDatumIdentifier.WIND_SPEED );
+		writeDoubleField( data, generator, "windSpeed", WeatherDatumIdentifier.WIND_SPEED );
+		writeDoubleField( data, generator, "windDirection", WeatherDatumIdentifier.WIND_DIRECTION );
 
-		writeDoubleField(data, generator,"windTwoMinMax",  WeatherDatumIdentifier.WIND_SPEED_2_MIN_MAX );
-		writeDoubleField(data, generator,"windTwoMinAvg",  WeatherDatumIdentifier.WIND_SPEED_2_MIN_AVG );
-		writeDoubleField(data, generator,"windTwoMinMin",  WeatherDatumIdentifier.WIND_SPEED_2_MIN_MIN );
+		writeDoubleField( data, generator, "rainTotalDaily", WeatherDatumIdentifier.RAIN_TOTAL_DAILY );
+		writeDoubleField( data, generator, "rainRate", WeatherDatumIdentifier.RAIN_RATE );
 
-		writeDoubleField(data, generator,"rainTotalDaily",  WeatherDatumIdentifier.RAIN_TOTAL_DAILY );
-		writeDoubleField(data, generator,"rainRate",  WeatherDatumIdentifier.RAIN_RATE );
+		writeDoubleField( data, generator, "temperatureTrend", WeatherDatumIdentifier.TEMPERATURE_TREND );
+		writeDoubleField( data, generator, "humidityTrend", WeatherDatumIdentifier.HUMIDITY_TREND );
+		writeDoubleField( data, generator, "pressureTrend", WeatherDatumIdentifier.PRESSURE_TREND );
+
+		writeDoubleField( data, generator, "windTenMinMax", WeatherDatumIdentifier.WIND_SPEED_10_MIN_MAX );
+		writeDoubleField( data, generator, "windTenMinAvg", WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG );
+		writeDoubleField( data, generator, "windTenMinMin", WeatherDatumIdentifier.WIND_SPEED_10_MIN_MIN );
+
+		writeDoubleField( data, generator, "windTwoMinMax", WeatherDatumIdentifier.WIND_SPEED_2_MIN_MAX );
+		writeDoubleField( data, generator, "windTwoMinAvg", WeatherDatumIdentifier.WIND_SPEED_2_MIN_AVG );
+		writeDoubleField( data, generator, "windTwoMinMin", WeatherDatumIdentifier.WIND_SPEED_2_MIN_MIN );
+
+		writeDoubleField( data, generator, "windDirectionTenMinAvg", WeatherDatumIdentifier.WIND_DIRECTION_10_MIN_AVG );
+		writeDoubleField( data, generator, "windDirectionTwoMinAvg", WeatherDatumIdentifier.WIND_DIRECTION_2_MIN_AVG );
 
 		generator.writeEndObject();
 		generator.close();

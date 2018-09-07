@@ -43,7 +43,7 @@ public class WeatherUtil {
 	 * @return If the wind speed is a gust relative to the buffer data
 	 */
 	public static boolean isGust( double wind, TimedEventBuffer buffer ) {
-		return isGust( wind, buffer.getAverage( WeatherDatumIdentifier.WIND_SPEED_CURRENT ) );
+		return isGust( wind, buffer.getAverage( WeatherDatumIdentifier.WIND_SPEED ) );
 	}
 
 	public static boolean isGust( double wind, double windAverage ) {

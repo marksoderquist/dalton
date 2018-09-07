@@ -64,8 +64,8 @@ public class WeatherUndergroundPublisher extends HttpPublisher {
 
 		// Prepare wind gust data
 		// This uses the five minute data because Weather Underground only uses one value every five minutes
-		double wa = station.getFiveMinuteBuffer().getAverage( WeatherDatumIdentifier.WIND_SPEED_CURRENT );
-		double wx = station.getFiveMinuteBuffer().getMaximum( WeatherDatumIdentifier.WIND_SPEED_CURRENT );
+		double wa = station.getFiveMinuteBuffer().getAverage( WeatherDatumIdentifier.WIND_SPEED );
+		double wx = station.getFiveMinuteBuffer().getMaximum( WeatherDatumIdentifier.WIND_SPEED );
 		if( WeatherUtil.isGust( wx, wa ))add( builder, wx, "windgustmph", "0" );
 
 		// Prepare rain data

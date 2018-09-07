@@ -11,7 +11,7 @@ public class TimedEventBufferTest extends WeatherTestCase {
 	public void testGetAverage() {
 		TimedEventBuffer buffer = generateBuffer();
 		assertThat( buffer.getAverage( WeatherDatumIdentifier.TEMPERATURE ), is( 60.9 ) );
-		assertThat( buffer.getAverage( WeatherDatumIdentifier.WIND_SPEED_CURRENT ), is( 10.0 ) );
+		assertThat( buffer.getAverage( WeatherDatumIdentifier.WIND_SPEED ), is( 10.0 ) );
 		assertThat( buffer.getEvents().size(), is( 6 ) );
 	}
 
@@ -19,7 +19,7 @@ public class TimedEventBufferTest extends WeatherTestCase {
 	public void testGetMinimum() {
 		TimedEventBuffer buffer = generateBuffer();
 		assertThat( buffer.getMinimum( WeatherDatumIdentifier.TEMPERATURE ), is( 60.4 ) );
-		assertThat( buffer.getMinimum( WeatherDatumIdentifier.WIND_SPEED_CURRENT ), is( 9.0 ) );
+		assertThat( buffer.getMinimum( WeatherDatumIdentifier.WIND_SPEED ), is( 9.0 ) );
 		assertThat( buffer.getEvents().size(), is( 6 ) );
 	}
 
@@ -27,7 +27,7 @@ public class TimedEventBufferTest extends WeatherTestCase {
 	public void testGetMaximum() {
 		TimedEventBuffer buffer = generateBuffer();
 		assertThat( buffer.getMaximum( WeatherDatumIdentifier.TEMPERATURE ), is( 61.4 ) );
-		assertThat( buffer.getMaximum( WeatherDatumIdentifier.WIND_SPEED_CURRENT ), is( 11.0 ) );
+		assertThat( buffer.getMaximum( WeatherDatumIdentifier.WIND_SPEED ), is( 11.0 ) );
 		assertThat( buffer.getEvents().size(), is( 6 ) );
 	}
 
@@ -35,7 +35,7 @@ public class TimedEventBufferTest extends WeatherTestCase {
 	public void testGetTrend() {
 		TimedEventBuffer buffer = generateBuffer();
 		assertThat( buffer.getTrend( WeatherDatumIdentifier.TEMPERATURE ), is( 1.0 ) );
-		assertThat( buffer.getTrend( WeatherDatumIdentifier.WIND_SPEED_CURRENT ), is( 0.0 ) );
+		assertThat( buffer.getTrend( WeatherDatumIdentifier.WIND_SPEED ), is( 0.0 ) );
 		assertThat( buffer.getEvents().size(), is( 6 ) );
 	}
 
