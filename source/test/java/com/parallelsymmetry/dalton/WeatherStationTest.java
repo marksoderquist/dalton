@@ -17,19 +17,19 @@ public class WeatherStationTest extends WeatherTestCase {
 		station.weatherDataEvent( generateEvent( null, 60.0, 29.92, 25.0, 10.0, 0.0, 10.0, 0.0, 0.09, 72.0, 40.0 ) );
 
 		assertThat( collector.getEvents().size(), is( 1 ) );
-		assertThat( (Double)collector.getEvents().get( 0 ).get( WeatherDatumIdentifier.TEMPERATURE ).getValue(), is( 60.0 ) );
-		assertThat( (Double)collector.getEvents().get( 0 ).get( WeatherDatumIdentifier.PRESSURE ).getValue(), is( 29.92 ) );
-		assertThat( (Double)collector.getEvents().get( 0 ).get( WeatherDatumIdentifier.HUMIDITY ).getValue(), is( 25.0 ) );
+		assertThat( (Double)collector.getEvents().get( 0 ).getValue( WeatherDatumIdentifier.TEMPERATURE ), is( 60.0 ) );
+		assertThat( (Double)collector.getEvents().get( 0 ).getValue( WeatherDatumIdentifier.PRESSURE ), is( 29.92 ) );
+		assertThat( (Double)collector.getEvents().get( 0 ).getValue( WeatherDatumIdentifier.HUMIDITY ), is( 25.0 ) );
 
-		assertThat( (Double)collector.getEvents().get( 0 ).get( WeatherDatumIdentifier.WIND_SPEED ).getValue(), is( 10.0 ) );
-		assertThat( (Double)collector.getEvents().get( 0 ).get( WeatherDatumIdentifier.WIND_DIRECTION ).getValue(), is( 0.0 ) );
-		assertThat( (Double)collector.getEvents().get( 0 ).get( WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG ).getValue(), is( 10.0 ) );
+		assertThat( (Double)collector.getEvents().get( 0 ).getValue( WeatherDatumIdentifier.WIND_SPEED ), is( 10.0 ) );
+		assertThat( (Double)collector.getEvents().get( 0 ).getValue( WeatherDatumIdentifier.WIND_DIRECTION ), is( 0.0 ) );
+		assertThat( (Double)collector.getEvents().get( 0 ).getValue( WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG ), is( 10.0 ) );
 
-		assertThat( (Double)collector.getEvents().get( 0 ).get( WeatherDatumIdentifier.RAIN_RATE ).getValue(), is( 0.0 ) );
-		assertThat( (Double)collector.getEvents().get( 0 ).get( WeatherDatumIdentifier.RAIN_TOTAL_DAILY ).getValue(), is( 0.09 ) );
+		assertThat( (Double)collector.getEvents().get( 0 ).getValue( WeatherDatumIdentifier.RAIN_RATE ), is( 0.0 ) );
+		assertThat( (Double)collector.getEvents().get( 0 ).getValue( WeatherDatumIdentifier.RAIN_TOTAL_DAILY ), is( 0.09 ) );
 
-		assertThat( (Double)collector.getEvents().get( 0 ).get( WeatherDatumIdentifier.TEMPERATURE_INSIDE ).getValue(), is( 72.0 ) );
-		assertThat( (Double)collector.getEvents().get( 0 ).get( WeatherDatumIdentifier.HUMIDITY_INSIDE ).getValue(), is( 40.0 ) );
+		assertThat( (Double)collector.getEvents().get( 0 ).getValue( WeatherDatumIdentifier.TEMPERATURE_INSIDE ), is( 72.0 ) );
+		assertThat( (Double)collector.getEvents().get( 0 ).getValue( WeatherDatumIdentifier.HUMIDITY_INSIDE ), is( 40.0 ) );
 	}
 
 }

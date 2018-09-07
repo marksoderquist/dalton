@@ -3,13 +3,10 @@ package com.parallelsymmetry.dalton;
 import junit.framework.TestCase;
 
 import javax.measure.DecimalMeasure;
-import javax.measure.Measure;
-import javax.measure.quantity.Quantity;
 import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public abstract class WeatherTestCase extends TestCase {
@@ -36,19 +33,19 @@ public abstract class WeatherTestCase extends TestCase {
 
 	protected class WeatherDataCollector implements WeatherDataPublisher {
 
-		private List<Map<WeatherDatumIdentifier, Measure<? extends Number, ? extends Quantity>>> events;
+		private List<WeatherDataEvent> events;
 
 		public WeatherDataCollector() {
 			events = new CopyOnWriteArrayList<>();
 		}
 
-		public List<Map<WeatherDatumIdentifier, Measure<? extends Number, ? extends Quantity>>> getEvents() {
+		public List<WeatherDataEvent> getEvents() {
 			return events;
 		}
 
 		@Override
-		public int publish( WeatherStation station, Map<WeatherDatumIdentifier, Measure<? extends Number, ? extends Quantity>> data ) throws IOException {
-			events.add( data );
+		public int publish( WeatherStation station, WeatherDataEvent event ) throws IOException {
+			events.add( event );
 			return 200;
 		}
 	}

@@ -5,14 +5,9 @@ import com.parallelsymmetry.utility.TextUtil;
 import org.junit.Test;
 
 import javax.measure.DecimalMeasure;
-import javax.measure.Measure;
-import javax.measure.quantity.Quantity;
 import javax.measure.unit.NonSI;
-import javax.measure.unit.SI;
 import java.net.URLEncoder;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.TimeZone;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -35,11 +30,10 @@ public class WeatherUndergroundPublisherTest {
 		String release = program.getCard().getRelease().toHumanString( DateUtil.DEFAULT_TIME_ZONE );
 
 		// Populate the weather data
-		Map<WeatherDatumIdentifier, Measure<? extends Number, ? extends Quantity>> data = new HashMap<>();
-		data.put( WeatherDatumIdentifier.TIMESTAMP, DecimalMeasure.valueOf( timestamp, SI.MILLI( SI.SECOND ) ) );
-		data.put( WeatherDatumIdentifier.TEMPERATURE, DecimalMeasure.valueOf( 60.0, NonSI.FAHRENHEIT ) );
-		data.put( WeatherDatumIdentifier.HUMIDITY, DecimalMeasure.valueOf( 25.0, NonSI.FAHRENHEIT ) );
-		data.put( WeatherDatumIdentifier.PRESSURE, DecimalMeasure.valueOf( 29.92, NonSI.FAHRENHEIT ) );
+		WeatherDataEvent event = new WeatherDataEvent( timestamp );
+		event.add( new WeatherDatum( WeatherDatumIdentifier.TEMPERATURE, DecimalMeasure.valueOf( 60.0, NonSI.FAHRENHEIT ) ) );
+		event.add( new WeatherDatum( WeatherDatumIdentifier.HUMIDITY, DecimalMeasure.valueOf( 25.0, NonSI.FAHRENHEIT ) ));
+		event.add( new WeatherDatum( WeatherDatumIdentifier.PRESSURE, DecimalMeasure.valueOf( 29.92, NonSI.FAHRENHEIT ) ));
 
 		// Generate the comparison string
 		StringBuilder builder = new StringBuilder();
@@ -56,7 +50,7 @@ public class WeatherUndergroundPublisherTest {
 		builder.append( "&softwaretype=dalton" ).append( URLEncoder.encode( " " + release, TextUtil.DEFAULT_ENCODING ) );
 
 		// Test generated payload
-		assertThat( publisher.generatePayload( station, data ), is( builder.toString() ) );
+		assertThat( publisher.generatePayload( station, event ), is( builder.toString() ) );
 	}
 
 }
