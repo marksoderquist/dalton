@@ -28,13 +28,15 @@ import java.util.concurrent.TimeoutException;
  */
 public class DavisReader extends Worker implements WeatherDataReader {
 
+	private static final int POLL_INTERVAL = 1500;
+
+	private static final int READ_INTERVAL = 500;
+
 	private boolean useConsole = false;
 
 	private String port = "/dev/ttyUSB0";
 
 	private Collection<WeatherStation> stations;
-
-	private int pollInterval = 2000;
 
 	private Thread pollingThread;
 
@@ -74,7 +76,7 @@ public class DavisReader extends Worker implements WeatherDataReader {
 					Log.write( Log.DEBUG, "Close the serial port: " + serialPort.getName() );
 					serialPort.close();
 				}
-				ThreadUtil.pause( pollInterval );
+				ThreadUtil.pause( POLL_INTERVAL );
 			}
 		}
 	}
@@ -190,7 +192,7 @@ public class DavisReader extends Worker implements WeatherDataReader {
 		// Wait for the station to process
 		// Otherwise there are no bytes available
 		try {
-			Thread.sleep( 500 );
+			Thread.sleep( READ_INTERVAL );
 		} catch( InterruptedException exception ) {
 			return;
 		}
