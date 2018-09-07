@@ -34,7 +34,7 @@ public class DavisReader extends Worker implements WeatherDataReader {
 
 	private Collection<WeatherStation> stations;
 
-	private int pollInterval = 2500;
+	private int pollInterval = 2000;
 
 	private Thread pollingThread;
 
