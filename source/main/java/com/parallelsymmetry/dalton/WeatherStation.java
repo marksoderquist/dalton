@@ -148,9 +148,7 @@ public class WeatherStation {
 		data.put( WeatherDatumIdentifier.WIND_SPEED_5_MIN_MAX, DecimalMeasure.valueOf( windMax, NonSI.MILES_PER_HOUR ) );
 
 		double temperatureTrend = fiveMinuteBuffer.getTrend( WeatherDatumIdentifier.TEMPERATURE ) * 12.0;
-		double windSpeedTrend = fiveMinuteBuffer.getTrend( WeatherDatumIdentifier.WIND_SPEED ) * 12.0;
 		data.put( WeatherDatumIdentifier.TEMPERATURE_TREND, DecimalMeasure.valueOf( temperatureTrend, NonSI.FAHRENHEIT.divide( NonSI.HOUR ) ) );
-		data.put( WeatherDatumIdentifier.WIND_SPEED_TREND, DecimalMeasure.valueOf( windSpeedTrend, NonSI.MILES_PER_HOUR.divide( NonSI.HOUR ) ) );
 	}
 
 	private void update10MinStatistics( WeatherDataEvent event ) {
@@ -161,6 +159,9 @@ public class WeatherStation {
 		data.put( WeatherDatumIdentifier.WIND_SPEED_10_MIN_MIN, DecimalMeasure.valueOf( windMin, NonSI.MILES_PER_HOUR ) );
 		data.put( WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG, DecimalMeasure.valueOf( windAvg, NonSI.MILES_PER_HOUR ) );
 		data.put( WeatherDatumIdentifier.WIND_SPEED_10_MIN_MAX, DecimalMeasure.valueOf( windMax, NonSI.MILES_PER_HOUR ) );
+
+		double windSpeedTrend = fiveMinuteBuffer.getTrend( WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG ) * 6.0;
+		data.put( WeatherDatumIdentifier.WIND_SPEED_TREND, DecimalMeasure.valueOf( windSpeedTrend, NonSI.MILES_PER_HOUR.divide( NonSI.HOUR ) ) );
 	}
 
 	private void update3HourStatistics( WeatherDataEvent event ) {
