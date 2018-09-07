@@ -68,19 +68,52 @@ public class WeatherStation {
 	}
 
 	public void weatherDataEvent( WeatherDataEvent event ) {
+		// Update statistics buffers
+		oneMinuteBuffer.post( event );
+		twoMinuteBuffer.post( event );
+		fiveMinuteBuffer.post( event );
+		tenMinuteBuffer.post( event );
+		threeHourBuffer.post( event );
+
 		data.put( WeatherDatumIdentifier.TIMESTAMP, DecimalMeasure.valueOf( event.getTimestamp(), SI.MILLI( SI.SECOND ) ) );
 
-		// Store event data
+		// Store standard event data
 		for( WeatherDatum datum : event.getData() ) {
 			data.put( datum.getIdentifier(), datum.getMeasure() );
 		}
 
-		// Update statistics
-		update1MinStatistics( event );
-		update2MinStatistics( event );
-		update5MinStatistics( event );
-		update10MinStatistics( event );
-		update3HourStatistics( event );
+		// FIXME Should derived values be added to the event that got put in the statistics?
+		// That way those values can be used further on to derive even more values?
+
+		// One minute statistics
+		data.put( WeatherDatumIdentifier.WIND_SPEED_1_MIN_MIN, DecimalMeasure.valueOf( oneMinuteBuffer.getMinimum( WeatherDatumIdentifier.WIND_SPEED ), NonSI.MILES_PER_HOUR ) );
+		data.put( WeatherDatumIdentifier.WIND_SPEED_1_MIN_AVG, DecimalMeasure.valueOf( oneMinuteBuffer.getAverage( WeatherDatumIdentifier.WIND_SPEED ), NonSI.MILES_PER_HOUR ) );
+		data.put( WeatherDatumIdentifier.WIND_SPEED_1_MIN_MAX, DecimalMeasure.valueOf( oneMinuteBuffer.getMaximum( WeatherDatumIdentifier.WIND_SPEED ), NonSI.MILES_PER_HOUR ) );
+
+		// Two minute statistics
+		data.put( WeatherDatumIdentifier.WIND_SPEED_2_MIN_MIN, DecimalMeasure.valueOf( twoMinuteBuffer.getMinimum( WeatherDatumIdentifier.WIND_SPEED ), NonSI.MILES_PER_HOUR ) );
+		data.put( WeatherDatumIdentifier.WIND_SPEED_2_MIN_AVG, DecimalMeasure.valueOf( twoMinuteBuffer.getAverage( WeatherDatumIdentifier.WIND_SPEED ), NonSI.MILES_PER_HOUR ) );
+		data.put( WeatherDatumIdentifier.WIND_SPEED_2_MIN_MAX, DecimalMeasure.valueOf( twoMinuteBuffer.getMaximum( WeatherDatumIdentifier.WIND_SPEED ), NonSI.MILES_PER_HOUR ) );
+
+		// Five minute statistics
+		data.put( WeatherDatumIdentifier.WIND_SPEED_5_MIN_MIN, DecimalMeasure.valueOf( fiveMinuteBuffer.getMinimum( WeatherDatumIdentifier.WIND_SPEED ), NonSI.MILES_PER_HOUR ) );
+		data.put( WeatherDatumIdentifier.WIND_SPEED_5_MIN_AVG, DecimalMeasure.valueOf( fiveMinuteBuffer.getAverage( WeatherDatumIdentifier.WIND_SPEED ), NonSI.MILES_PER_HOUR ) );
+		data.put( WeatherDatumIdentifier.WIND_SPEED_5_MIN_MAX, DecimalMeasure.valueOf( fiveMinuteBuffer.getMaximum( WeatherDatumIdentifier.WIND_SPEED ), NonSI.MILES_PER_HOUR ) );
+
+		// Ten minute statistics
+		data.put( WeatherDatumIdentifier.WIND_SPEED_10_MIN_MIN, DecimalMeasure.valueOf( tenMinuteBuffer.getMinimum( WeatherDatumIdentifier.WIND_SPEED ), NonSI.MILES_PER_HOUR ) );
+		data.put( WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG, DecimalMeasure.valueOf( tenMinuteBuffer.getAverage( WeatherDatumIdentifier.WIND_SPEED ), NonSI.MILES_PER_HOUR ) );
+		data.put( WeatherDatumIdentifier.WIND_SPEED_10_MIN_MAX, DecimalMeasure.valueOf( tenMinuteBuffer.getMaximum( WeatherDatumIdentifier.WIND_SPEED ), NonSI.MILES_PER_HOUR ) );
+
+		double temperatureTrend = fiveMinuteBuffer.getTrend( WeatherDatumIdentifier.TEMPERATURE ) * 12.0;
+		double humidityTrend = threeHourBuffer.getTrend( WeatherDatumIdentifier.HUMIDITY ) / 3.0;
+		double pressureTrend = threeHourBuffer.getTrend( WeatherDatumIdentifier.PRESSURE ) / 3.0;
+		double windSpeedTrend = tenMinuteBuffer.getTrend( WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG ) * 6.0;
+
+		data.put( WeatherDatumIdentifier.TEMPERATURE_TREND, DecimalMeasure.valueOf( temperatureTrend, NonSI.FAHRENHEIT.divide( NonSI.HOUR ) ) );
+		data.put( WeatherDatumIdentifier.WIND_SPEED_TREND, DecimalMeasure.valueOf( windSpeedTrend, NonSI.MILES_PER_HOUR.divide( NonSI.HOUR ) ) );
+		data.put( WeatherDatumIdentifier.HUMIDITY_TREND, DecimalMeasure.valueOf( humidityTrend, NonSI.PERCENT.divide( NonSI.HOUR ) ) );
+		data.put( WeatherDatumIdentifier.PRESSURE_TREND, DecimalMeasure.valueOf( pressureTrend, NonSI.INCH_OF_MERCURY.divide( NonSI.HOUR ) ) );
 
 		double t = (Double)data.get( WeatherDatumIdentifier.TEMPERATURE ).getValue();
 		double h = (Double)data.get( WeatherDatumIdentifier.HUMIDITY ).getValue();
@@ -116,60 +149,6 @@ public class WeatherStation {
 		for( WeatherDatumIdentifier identifier : data.keySet() ) {
 			Log.write( Log.DETAIL, identifier, " = ", data.get( identifier ) );
 		}
-	}
-
-	private void update1MinStatistics( WeatherDataEvent event ) {
-		oneMinuteBuffer.post( event );
-		double windMin = oneMinuteBuffer.getMinimum( WeatherDatumIdentifier.WIND_SPEED );
-		double windMax = oneMinuteBuffer.getMaximum( WeatherDatumIdentifier.WIND_SPEED );
-		double windAvg = oneMinuteBuffer.getAverage( WeatherDatumIdentifier.WIND_SPEED );
-		data.put( WeatherDatumIdentifier.WIND_SPEED_1_MIN_MIN, DecimalMeasure.valueOf( windMin, NonSI.MILES_PER_HOUR ) );
-		data.put( WeatherDatumIdentifier.WIND_SPEED_1_MIN_AVG, DecimalMeasure.valueOf( windAvg, NonSI.MILES_PER_HOUR ) );
-		data.put( WeatherDatumIdentifier.WIND_SPEED_1_MIN_MAX, DecimalMeasure.valueOf( windMax, NonSI.MILES_PER_HOUR ) );
-	}
-
-	private void update2MinStatistics( WeatherDataEvent event ) {
-		twoMinuteBuffer.post( event );
-		double windMin = twoMinuteBuffer.getMinimum( WeatherDatumIdentifier.WIND_SPEED );
-		double windMax = twoMinuteBuffer.getMaximum( WeatherDatumIdentifier.WIND_SPEED );
-		double windAvg = twoMinuteBuffer.getAverage( WeatherDatumIdentifier.WIND_SPEED );
-		data.put( WeatherDatumIdentifier.WIND_SPEED_2_MIN_MIN, DecimalMeasure.valueOf( windMin, NonSI.MILES_PER_HOUR ) );
-		data.put( WeatherDatumIdentifier.WIND_SPEED_2_MIN_AVG, DecimalMeasure.valueOf( windAvg, NonSI.MILES_PER_HOUR ) );
-		data.put( WeatherDatumIdentifier.WIND_SPEED_2_MIN_MAX, DecimalMeasure.valueOf( windMax, NonSI.MILES_PER_HOUR ) );
-	}
-
-	private void update5MinStatistics( WeatherDataEvent event ) {
-		fiveMinuteBuffer.post( event );
-		double windMin = fiveMinuteBuffer.getMinimum( WeatherDatumIdentifier.WIND_SPEED );
-		double windMax = fiveMinuteBuffer.getMaximum( WeatherDatumIdentifier.WIND_SPEED );
-		double windAvg = fiveMinuteBuffer.getAverage( WeatherDatumIdentifier.WIND_SPEED );
-		data.put( WeatherDatumIdentifier.WIND_SPEED_5_MIN_MIN, DecimalMeasure.valueOf( windMin, NonSI.MILES_PER_HOUR ) );
-		data.put( WeatherDatumIdentifier.WIND_SPEED_5_MIN_AVG, DecimalMeasure.valueOf( windAvg, NonSI.MILES_PER_HOUR ) );
-		data.put( WeatherDatumIdentifier.WIND_SPEED_5_MIN_MAX, DecimalMeasure.valueOf( windMax, NonSI.MILES_PER_HOUR ) );
-
-		double temperatureTrend = fiveMinuteBuffer.getTrend( WeatherDatumIdentifier.TEMPERATURE ) * 12.0;
-		data.put( WeatherDatumIdentifier.TEMPERATURE_TREND, DecimalMeasure.valueOf( temperatureTrend, NonSI.FAHRENHEIT.divide( NonSI.HOUR ) ) );
-	}
-
-	private void update10MinStatistics( WeatherDataEvent event ) {
-		tenMinuteBuffer.post( event );
-		double windMin = tenMinuteBuffer.getMinimum( WeatherDatumIdentifier.WIND_SPEED );
-		double windMax = tenMinuteBuffer.getMaximum( WeatherDatumIdentifier.WIND_SPEED );
-		double windAvg = tenMinuteBuffer.getAverage( WeatherDatumIdentifier.WIND_SPEED );
-		data.put( WeatherDatumIdentifier.WIND_SPEED_10_MIN_MIN, DecimalMeasure.valueOf( windMin, NonSI.MILES_PER_HOUR ) );
-		data.put( WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG, DecimalMeasure.valueOf( windAvg, NonSI.MILES_PER_HOUR ) );
-		data.put( WeatherDatumIdentifier.WIND_SPEED_10_MIN_MAX, DecimalMeasure.valueOf( windMax, NonSI.MILES_PER_HOUR ) );
-
-		double windSpeedTrend = fiveMinuteBuffer.getTrend( WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG ) * 6.0;
-		data.put( WeatherDatumIdentifier.WIND_SPEED_TREND, DecimalMeasure.valueOf( windSpeedTrend, NonSI.MILES_PER_HOUR.divide( NonSI.HOUR ) ) );
-	}
-
-	private void update3HourStatistics( WeatherDataEvent event ) {
-		threeHourBuffer.post( event );
-		double humidityTrend = threeHourBuffer.getTrend( WeatherDatumIdentifier.HUMIDITY ) / 3.0;
-		double pressureTrend = threeHourBuffer.getTrend( WeatherDatumIdentifier.PRESSURE ) / 3.0;
-		data.put( WeatherDatumIdentifier.HUMIDITY_TREND, DecimalMeasure.valueOf( humidityTrend, NonSI.PERCENT.divide( NonSI.HOUR ) ) );
-		data.put( WeatherDatumIdentifier.PRESSURE_TREND, DecimalMeasure.valueOf( pressureTrend, NonSI.INCH_OF_MERCURY.divide( NonSI.HOUR ) ) );
 	}
 
 }
