@@ -45,6 +45,7 @@ public class MarkSoderquistWeatherPublisher extends HttpPublisher {
 		writeDoubleField( data, generator, "temperatureTrend", WeatherDatumIdentifier.TEMPERATURE_TREND );
 		writeDoubleField( data, generator, "humidityTrend", WeatherDatumIdentifier.HUMIDITY_TREND );
 		writeDoubleField( data, generator, "pressureTrend", WeatherDatumIdentifier.PRESSURE_TREND );
+		writeDoubleField( data, generator, "windSpeedTrend", WeatherDatumIdentifier.WIND_SPEED_TREND );
 
 		writeDoubleField( data, generator, "windTenMinMax", WeatherDatumIdentifier.WIND_SPEED_10_MIN_MAX );
 		writeDoubleField( data, generator, "windTenMinAvg", WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG );
