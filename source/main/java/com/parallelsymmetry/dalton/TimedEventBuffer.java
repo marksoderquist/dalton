@@ -74,8 +74,8 @@ public class TimedEventBuffer {
 			WeatherDatum timeDatum = event.get( WeatherDatumIdentifier.TIMESTAMP );
 			WeatherDatum datum = event.get( identifier );
 			if( timeDatum == null || datum == null ) continue;
-			times[ index ] = (Double)timeDatum.getMeasure().getValue();
-			values[ index ] = (Double)datum.getMeasure().getValue();
+			times[ index ] = timeDatum.getMeasure().getValue().doubleValue();
+			values[ index ] = datum.getMeasure().getValue().doubleValue();
 		}
 
 		return Statistics.leastSquaresSlope( times,values );

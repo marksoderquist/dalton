@@ -34,8 +34,8 @@ public class TimedEventBufferTest extends WeatherTestCase {
 	@Test
 	public void testGetTrend() {
 		TimedEventBuffer buffer = generateBuffer();
-		assertThat( buffer.getTrend( WeatherDatumIdentifier.TEMPERATURE ), is( 1.0 ) );
-		assertThat( buffer.getTrend( WeatherDatumIdentifier.WIND_SPEED ), is( 0.0 ) );
+		assertThat( buffer.getTrend( WeatherDatumIdentifier.TEMPERATURE ), is( 0.015100000000000006 ) );
+		assertThat( buffer.getTrend( WeatherDatumIdentifier.WIND_SPEED ), is( 0.0022500000000000003 ) );
 		assertThat( buffer.getEvents().size(), is( 6 ) );
 	}
 
