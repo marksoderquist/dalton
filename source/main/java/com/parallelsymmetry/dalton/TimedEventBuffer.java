@@ -1,5 +1,7 @@
 package com.parallelsymmetry.dalton;
 
+import com.parallelsymmetry.utility.math.Statistics;
+
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -64,13 +66,19 @@ public class TimedEventBuffer {
 	public double getTrend( WeatherDatumIdentifier identifier ) {
 		if( buffer.size() < 2 ) return 0;
 
-		double trend = 0;
+		int index = 0;
+		int count = buffer.size();
+		double[] times = new double[ count ];
+		double[] values = new double[ count ];
+		for( WeatherDataEvent event : buffer ) {
+			WeatherDatum timeDatum = event.get( WeatherDatumIdentifier.TIMESTAMP );
+			WeatherDatum datum = event.get( identifier );
+			if( timeDatum == null || datum == null ) continue;
+			times[ index ] = (Double)timeDatum.getMeasure().getValue();
+			values[ index ] = (Double)datum.getMeasure().getValue();
+		}
 
-		double first = (Double)buffer.peekFirst().get( identifier ).getMeasure().getValue();
-		double last = (Double)buffer.peekLast().get( identifier ).getMeasure().getValue();
-		trend = first - last;
-
-		return trend;
+		return Statistics.leastSquaresSlope( times,values );
 	}
 
 	private void trimEvents() {
