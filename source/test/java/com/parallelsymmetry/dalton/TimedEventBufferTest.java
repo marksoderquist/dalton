@@ -32,24 +32,25 @@ public class TimedEventBufferTest extends WeatherTestCase {
 	}
 
 	@Test
-	public void testGetTrend() {
+	public void testGetTrendPerHour() {
 		TimedEventBuffer buffer = generateBuffer();
-		assertThat( buffer.getTrend( WeatherDatumIdentifier.TEMPERATURE ), is( 0.015100000000000006 ) );
-		assertThat( buffer.getTrend( WeatherDatumIdentifier.WIND_SPEED ), is( 0.0022500000000000003 ) );
+		assertThat( buffer.getTrendPerHour( WeatherDatumIdentifier.TEMPERATURE ), is( 360.00000000000034 ) );
+		assertThat( buffer.getTrendPerHour( WeatherDatumIdentifier.WIND_SPEED ), is( 0.0 ) );
 		assertThat( buffer.getEvents().size(), is( 6 ) );
 	}
 
 	private TimedEventBuffer generateBuffer() {
 		TimedEventBuffer buffer = new TimedEventBuffer( 10000 );
 
-		buffer.post( generateEvent( 0000L, 60.0, 29.92, 25.0, 10.0, 0.0, 10.0, 0.0, 0.09, 72.0, 40.0 ) );
-		buffer.post( generateEvent( 2000L, 60.2, 29.92, 25.0, 10.0, 0.0, 10.0, 0.0, 0.09, 72.0, 40.0 ) );
-		buffer.post( generateEvent( 4000L, 60.4, 29.92, 25.0, 9.0, 0.0, 10.0, 0.0, 0.09, 72.0, 40.0 ) );
-		buffer.post( generateEvent( 6000L, 60.6, 29.92, 25.0, 10.0, 0.0, 10.0, 0.0, 0.09, 72.0, 40.0 ) );
-		buffer.post( generateEvent( 8000L, 60.8, 29.92, 25.0, 11.0, 0.0, 10.0, 0.0, 0.09, 72.0, 40.0 ) );
-		buffer.post( generateEvent( 10000L, 61.0, 29.92, 25.0, 11.0, 0.0, 10.0, 0.0, 0.09, 72.0, 40.0 ) );
-		buffer.post( generateEvent( 12000L, 61.2, 29.92, 25.0, 10.0, 0.0, 10.0, 0.0, 0.09, 72.0, 40.0 ) );
-		buffer.post( generateEvent( 14000L, 61.4, 29.92, 25.0, 9.0, 0.0, 10.0, 0.0, 0.09, 72.0, 40.0 ) );
+		long time= System.currentTimeMillis();
+		buffer.post( generateEvent( time + 0000L, 60.0, 29.92, 25.0, 10.0, 0.0, 10.0, 0.0, 0.09, 72.0, 40.0 ) );
+		buffer.post( generateEvent( time + 2000L, 60.2, 29.92, 25.0, 10.0, 0.0, 10.0, 0.0, 0.09, 72.0, 40.0 ) );
+		buffer.post( generateEvent( time + 4000L, 60.4, 29.92, 25.0, 9.0, 0.0, 10.0, 0.0, 0.09, 72.0, 40.0 ) );
+		buffer.post( generateEvent( time + 6000L, 60.6, 29.92, 25.0, 10.0, 0.0, 10.0, 0.0, 0.09, 72.0, 40.0 ) );
+		buffer.post( generateEvent( time + 8000L, 60.8, 29.92, 25.0, 11.0, 0.0, 10.0, 0.0, 0.09, 72.0, 40.0 ) );
+		buffer.post( generateEvent( time + 10000L, 61.0, 29.92, 25.0, 11.0, 0.0, 10.0, 0.0, 0.09, 72.0, 40.0 ) );
+		buffer.post( generateEvent( time + 12000L, 61.2, 29.92, 25.0, 10.0, 0.0, 10.0, 0.0, 0.09, 72.0, 40.0 ) );
+		buffer.post( generateEvent( time + 14000L, 61.4, 29.92, 25.0, 9.0, 0.0, 10.0, 0.0, 0.09, 72.0, 40.0 ) );
 
 		return buffer;
 	}

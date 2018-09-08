@@ -63,7 +63,11 @@ public class TimedEventBuffer {
 		return maximum;
 	}
 
-	public double getTrend( WeatherDatumIdentifier identifier ) {
+	public double getTrendPerHour( WeatherDatumIdentifier identifier ) {
+		return getTrendPerMillisecond( identifier ) * 3600000;
+	}
+
+	private double getTrendPerMillisecond( WeatherDatumIdentifier identifier ) {
 		if( buffer.size() < 2 ) return 0;
 
 		int index = 0;
@@ -76,9 +80,10 @@ public class TimedEventBuffer {
 			if( timeDatum == null || datum == null ) continue;
 			times[ index ] = timeDatum.getMeasure().getValue().doubleValue();
 			values[ index ] = datum.getMeasure().getValue().doubleValue();
+			index++;
 		}
 
-		return Statistics.leastSquaresSlope( times,values );
+		return Statistics.leastSquaresSlope( times, values );
 	}
 
 	private void trimEvents() {

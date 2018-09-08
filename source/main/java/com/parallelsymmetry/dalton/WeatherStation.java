@@ -87,10 +87,10 @@ public class WeatherStation {
 		event.add( new WeatherDatum( WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG, DecimalMeasure.valueOf( tenMinuteBuffer.getAverage( WeatherDatumIdentifier.WIND_SPEED ), NonSI.MILES_PER_HOUR ) ) );
 		event.add( new WeatherDatum( WeatherDatumIdentifier.WIND_SPEED_10_MIN_MAX, DecimalMeasure.valueOf( tenMinuteBuffer.getMaximum( WeatherDatumIdentifier.WIND_SPEED ), NonSI.MILES_PER_HOUR ) ) );
 
-		double temperatureTrend = fiveMinuteBuffer.getTrend( WeatherDatumIdentifier.TEMPERATURE ) * 12.0;
-		double humidityTrend = threeHourBuffer.getTrend( WeatherDatumIdentifier.HUMIDITY ) / 3.0;
-		double pressureTrend = threeHourBuffer.getTrend( WeatherDatumIdentifier.PRESSURE ) / 3.0;
-		double windSpeedTrend = tenMinuteBuffer.getTrend( WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG ) * 6.0;
+		double temperatureTrend = fiveMinuteBuffer.getTrendPerHour( WeatherDatumIdentifier.TEMPERATURE );
+		double humidityTrend = threeHourBuffer.getTrendPerHour( WeatherDatumIdentifier.HUMIDITY );
+		double pressureTrend = threeHourBuffer.getTrendPerHour( WeatherDatumIdentifier.PRESSURE );
+		double windSpeedTrend = tenMinuteBuffer.getTrendPerHour( WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG );
 
 		event.add( new WeatherDatum( WeatherDatumIdentifier.TEMPERATURE_TREND, DecimalMeasure.valueOf( temperatureTrend, NonSI.FAHRENHEIT.divide( NonSI.HOUR ) ) ) );
 		event.add( new WeatherDatum( WeatherDatumIdentifier.WIND_SPEED_TREND, DecimalMeasure.valueOf( windSpeedTrend, NonSI.MILES_PER_HOUR.divide( NonSI.HOUR ) ) ) );
