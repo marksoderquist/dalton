@@ -19,6 +19,8 @@ public class WeatherStation {
 
 	private TimedEventBuffer tenMinuteBuffer;
 
+	private TimedEventBuffer oneHourBuffer;
+
 	private TimedEventBuffer threeHourBuffer;
 
 	public WeatherStation() {
@@ -28,6 +30,7 @@ public class WeatherStation {
 		twoMinuteBuffer = new TimedEventBuffer( 120000 );
 		fiveMinuteBuffer = new TimedEventBuffer( 300000 );
 		tenMinuteBuffer = new TimedEventBuffer( 600000 );
+		oneHourBuffer = new TimedEventBuffer( 3600000 );
 		threeHourBuffer = new TimedEventBuffer( 10800000 );
 	}
 
@@ -65,6 +68,7 @@ public class WeatherStation {
 		twoMinuteBuffer.post( event );
 		fiveMinuteBuffer.post( event );
 		tenMinuteBuffer.post( event );
+		oneHourBuffer.post( event );
 		threeHourBuffer.post( event );
 
 		// One minute statistics
@@ -87,10 +91,10 @@ public class WeatherStation {
 		event.add( new WeatherDatum( WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG, DecimalMeasure.valueOf( tenMinuteBuffer.getAverage( WeatherDatumIdentifier.WIND_SPEED ), NonSI.MILES_PER_HOUR ) ) );
 		event.add( new WeatherDatum( WeatherDatumIdentifier.WIND_SPEED_10_MIN_MAX, DecimalMeasure.valueOf( tenMinuteBuffer.getMaximum( WeatherDatumIdentifier.WIND_SPEED ), NonSI.MILES_PER_HOUR ) ) );
 
-		double temperatureTrend = fiveMinuteBuffer.getTrendPerHour( WeatherDatumIdentifier.TEMPERATURE );
+		double temperatureTrend = oneHourBuffer.getTrendPerHour( WeatherDatumIdentifier.TEMPERATURE );
 		double humidityTrend = threeHourBuffer.getTrendPerHour( WeatherDatumIdentifier.HUMIDITY );
 		double pressureTrend = threeHourBuffer.getTrendPerHour( WeatherDatumIdentifier.PRESSURE );
-		double windSpeedTrend = tenMinuteBuffer.getTrendPerHour( WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG );
+		double windSpeedTrend = oneHourBuffer.getTrendPerHour( WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG );
 
 		event.add( new WeatherDatum( WeatherDatumIdentifier.TEMPERATURE_TREND, DecimalMeasure.valueOf( temperatureTrend, NonSI.FAHRENHEIT.divide( NonSI.HOUR ) ) ) );
 		event.add( new WeatherDatum( WeatherDatumIdentifier.WIND_SPEED_TREND, DecimalMeasure.valueOf( windSpeedTrend, NonSI.MILES_PER_HOUR.divide( NonSI.HOUR ) ) ) );
