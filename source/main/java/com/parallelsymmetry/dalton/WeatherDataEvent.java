@@ -10,12 +10,8 @@ public class WeatherDataEvent {
 	private Map<WeatherDatumIdentifier, WeatherDatum> map;
 
 	public WeatherDataEvent( WeatherDatum... data ) {
-		this( System.currentTimeMillis(), data );
-	}
-
-	public WeatherDataEvent( long timestamp, WeatherDatum... data ) {
 		this.map = new ConcurrentHashMap<>();
-		add( new WeatherDatum( WeatherDatumIdentifier.TIMESTAMP, DecimalMeasure.valueOf( timestamp, SI.MILLI( SI.SECOND ) ) ) );
+		add( new WeatherDatum( WeatherDatumIdentifier.TIMESTAMP, DecimalMeasure.valueOf( System.currentTimeMillis(), SI.MILLI( SI.SECOND ) ) ) );
 		add( data );
 	}
 

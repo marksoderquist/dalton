@@ -30,10 +30,10 @@ public class WeatherUndergroundPublisherTest {
 		String release = program.getCard().getRelease().toHumanString( DateUtil.DEFAULT_TIME_ZONE );
 
 		// Populate the weather data
-		WeatherDataEvent event = new WeatherDataEvent( timestamp );
+		WeatherDataEvent event = new WeatherDataEvent();
 		event.add( new WeatherDatum( WeatherDatumIdentifier.TEMPERATURE, DecimalMeasure.valueOf( 60.0, NonSI.FAHRENHEIT ) ) );
-		event.add( new WeatherDatum( WeatherDatumIdentifier.HUMIDITY, DecimalMeasure.valueOf( 25.0, NonSI.FAHRENHEIT ) ));
-		event.add( new WeatherDatum( WeatherDatumIdentifier.PRESSURE, DecimalMeasure.valueOf( 29.92, NonSI.FAHRENHEIT ) ));
+		event.add( new WeatherDatum( WeatherDatumIdentifier.HUMIDITY, DecimalMeasure.valueOf( 25.0, NonSI.FAHRENHEIT ) ) );
+		event.add( new WeatherDatum( WeatherDatumIdentifier.PRESSURE, DecimalMeasure.valueOf( 29.92, NonSI.FAHRENHEIT ) ) );
 
 		// Generate the comparison string
 		StringBuilder builder = new StringBuilder();
