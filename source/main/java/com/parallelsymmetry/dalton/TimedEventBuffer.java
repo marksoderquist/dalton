@@ -1,6 +1,8 @@
 package com.parallelsymmetry.dalton;
 
 import com.parallelsymmetry.utility.math.Statistics;
+import javolution.lang.MathLib;
+import org.jscience.mathematics.vector.Float64Vector;
 
 import java.util.Deque;
 import java.util.LinkedList;
@@ -84,6 +86,39 @@ public class TimedEventBuffer {
 		}
 
 		return Statistics.leastSquaresSlope( times, values );
+	}
+
+	public static double getMagnitude( Float64Vector v ) {
+		return v.normValue();
+	}
+
+	public static double getAngleInDegrees( Float64Vector v ) {
+		return MathLib.toDegrees( Math.atan2( v.getValue( 1 ), v.getValue( 0 ) ) );
+	}
+
+	public Float64Vector getAverageVector( WeatherDatumIdentifier magnitude, WeatherDatumIdentifier direction ) {
+		int count = 0;
+		double totalX = 0;
+		double totalY = 0;
+
+		for( WeatherDataEvent event : buffer ) {
+			double m = event.get( magnitude ).getMeasure().getValue().doubleValue();
+			double d = event.get( direction ).getMeasure().getValue().doubleValue();
+
+			double a = MathLib.toRadians( d );
+
+			double x = m * Math.sin( a );
+			double y = m * Math.cos( a );
+
+			totalX += x;
+			totalY += y;
+			count++;
+		}
+
+		double averageX = totalX / count;
+		double averageY = totalY / count;
+
+		return Float64Vector.valueOf( averageX, averageY );
 	}
 
 	private void trimEvents() {

@@ -48,12 +48,11 @@ public class MarkSoderquistWeatherPublisher extends HttpPublisher {
 		writeDoubleField( event, generator, "windTenMinMax", WeatherDatumIdentifier.WIND_SPEED_10_MIN_MAX );
 		writeDoubleField( event, generator, "windTenMinAvg", WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG );
 		writeDoubleField( event, generator, "windTenMinMin", WeatherDatumIdentifier.WIND_SPEED_10_MIN_MIN );
+		writeDoubleField( event, generator, "windDirectionTenMinAvg", WeatherDatumIdentifier.WIND_DIRECTION_10_MIN_AVG );
 
 		writeDoubleField( event, generator, "windTwoMinMax", WeatherDatumIdentifier.WIND_SPEED_2_MIN_MAX );
 		writeDoubleField( event, generator, "windTwoMinAvg", WeatherDatumIdentifier.WIND_SPEED_2_MIN_AVG );
 		writeDoubleField( event, generator, "windTwoMinMin", WeatherDatumIdentifier.WIND_SPEED_2_MIN_MIN );
-
-		writeDoubleField( event, generator, "windDirectionTenMinAvg", WeatherDatumIdentifier.WIND_DIRECTION_10_MIN_AVG );
 		writeDoubleField( event, generator, "windDirectionTwoMinAvg", WeatherDatumIdentifier.WIND_DIRECTION_2_MIN_AVG );
 
 		generator.writeEndObject();
