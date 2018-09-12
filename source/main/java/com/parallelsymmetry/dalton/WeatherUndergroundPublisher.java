@@ -56,7 +56,7 @@ public class WeatherUndergroundPublisher extends HttpPublisher {
 		add( event, builder, WeatherDatumIdentifier.DEW_POINT, "dewptf", "0.0" );
 
 		// Prepare wind data
-		add( event, builder, WeatherDatumIdentifier.WIND_DIRECTION, "winddir", "0" );
+		add( event, builder, WeatherDatumIdentifier.WIND_DIRECTION_10_MIN_AVG, "winddir", "0" );
 		add( event, builder, WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG, "windspeedmph", "0.0" );
 
 		// Prepare wind gust data
