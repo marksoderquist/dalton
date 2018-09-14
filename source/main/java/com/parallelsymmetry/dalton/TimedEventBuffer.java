@@ -93,7 +93,9 @@ public class TimedEventBuffer {
 	}
 
 	public static double getAngleInDegrees( Float64Vector v ) {
-		return MathLib.toDegrees( Math.atan2( v.getValue( 1 ), v.getValue( 0 ) ) );
+		double degrees = MathLib.toDegrees( Math.atan2( v.getValue( 1 ), v.getValue( 0 ) ) );
+		if( degrees < 0 ) degrees += 360;
+		return degrees;
 	}
 
 	public Float64Vector getAverageVector( WeatherDatumIdentifier magnitude, WeatherDatumIdentifier direction ) {

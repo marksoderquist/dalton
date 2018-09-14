@@ -80,8 +80,7 @@ public class WeatherStation {
 		event.add( new WeatherDatum( WeatherDatumIdentifier.WIND_SPEED_2_MIN_MIN, DecimalMeasure.valueOf( twoMinuteBuffer.getMinimum( WeatherDatumIdentifier.WIND_SPEED ), NonSI.MILES_PER_HOUR ) ) );
 		event.add( new WeatherDatum( WeatherDatumIdentifier.WIND_SPEED_2_MIN_AVG, DecimalMeasure.valueOf( twoMinuteBuffer.getAverage( WeatherDatumIdentifier.WIND_SPEED ), NonSI.MILES_PER_HOUR ) ) );
 		event.add( new WeatherDatum( WeatherDatumIdentifier.WIND_SPEED_2_MIN_MAX, DecimalMeasure.valueOf( twoMinuteBuffer.getMaximum( WeatherDatumIdentifier.WIND_SPEED ), NonSI.MILES_PER_HOUR ) ) );
-		event.add( new WeatherDatum( WeatherDatumIdentifier.WIND_DIRECTION_2_MIN_AVG, DecimalMeasure.valueOf( TimedEventBuffer.getAngleInDegrees( twoMinuteBuffer.getAverageVector( WeatherDatumIdentifier.WIND_SPEED,
-				WeatherDatumIdentifier.WIND_DIRECTION ) ), NonSI.DEGREE_ANGLE ) ) );
+		event.add( new WeatherDatum( WeatherDatumIdentifier.WIND_DIRECTION_2_MIN_AVG, DecimalMeasure.valueOf( TimedEventBuffer.getAngleInDegrees( twoMinuteBuffer.getAverageVector( WeatherDatumIdentifier.WIND_SPEED, WeatherDatumIdentifier.WIND_DIRECTION ) ), NonSI.DEGREE_ANGLE ) ) );
 
 		// Five minute statistics
 		event.add( new WeatherDatum( WeatherDatumIdentifier.WIND_SPEED_5_MIN_MIN, DecimalMeasure.valueOf( fiveMinuteBuffer.getMinimum( WeatherDatumIdentifier.WIND_SPEED ), NonSI.MILES_PER_HOUR ) ) );
