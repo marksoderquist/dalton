@@ -77,10 +77,11 @@ public class WeatherStation {
 		event.add( new WeatherDatum( WeatherDatumIdentifier.WIND_SPEED_1_MIN_MAX, DecimalMeasure.valueOf( oneMinuteBuffer.getMaximum( WeatherDatumIdentifier.WIND_SPEED ), NonSI.MILES_PER_HOUR ) ) );
 
 		// Two minute statistics
+		double windDirection2MinAvg = TimedEventBuffer.getAngleInDegrees( twoMinuteBuffer.getAverageVector( WeatherDatumIdentifier.WIND_SPEED, WeatherDatumIdentifier.WIND_DIRECTION ) );
 		event.add( new WeatherDatum( WeatherDatumIdentifier.WIND_SPEED_2_MIN_MIN, DecimalMeasure.valueOf( twoMinuteBuffer.getMinimum( WeatherDatumIdentifier.WIND_SPEED ), NonSI.MILES_PER_HOUR ) ) );
 		event.add( new WeatherDatum( WeatherDatumIdentifier.WIND_SPEED_2_MIN_AVG, DecimalMeasure.valueOf( twoMinuteBuffer.getAverage( WeatherDatumIdentifier.WIND_SPEED ), NonSI.MILES_PER_HOUR ) ) );
 		event.add( new WeatherDatum( WeatherDatumIdentifier.WIND_SPEED_2_MIN_MAX, DecimalMeasure.valueOf( twoMinuteBuffer.getMaximum( WeatherDatumIdentifier.WIND_SPEED ), NonSI.MILES_PER_HOUR ) ) );
-		event.add( new WeatherDatum( WeatherDatumIdentifier.WIND_DIRECTION_2_MIN_AVG, DecimalMeasure.valueOf( TimedEventBuffer.getAngleInDegrees( twoMinuteBuffer.getAverageVector( WeatherDatumIdentifier.WIND_SPEED, WeatherDatumIdentifier.WIND_DIRECTION ) ), NonSI.DEGREE_ANGLE ) ) );
+		if( windDirection2MinAvg != Double.NaN) event.add( new WeatherDatum( WeatherDatumIdentifier.WIND_DIRECTION_2_MIN_AVG, DecimalMeasure.valueOf( windDirection2MinAvg, NonSI.DEGREE_ANGLE ) ) );
 
 		// Five minute statistics
 		event.add( new WeatherDatum( WeatherDatumIdentifier.WIND_SPEED_5_MIN_MIN, DecimalMeasure.valueOf( fiveMinuteBuffer.getMinimum( WeatherDatumIdentifier.WIND_SPEED ), NonSI.MILES_PER_HOUR ) ) );
@@ -88,10 +89,11 @@ public class WeatherStation {
 		event.add( new WeatherDatum( WeatherDatumIdentifier.WIND_SPEED_5_MIN_MAX, DecimalMeasure.valueOf( fiveMinuteBuffer.getMaximum( WeatherDatumIdentifier.WIND_SPEED ), NonSI.MILES_PER_HOUR ) ) );
 
 		// Ten minute statistics
+		double windDirection10MinAvg = TimedEventBuffer.getAngleInDegrees( tenMinuteBuffer.getAverageVector( WeatherDatumIdentifier.WIND_SPEED, WeatherDatumIdentifier.WIND_DIRECTION ) );
 		event.add( new WeatherDatum( WeatherDatumIdentifier.WIND_SPEED_10_MIN_MIN, DecimalMeasure.valueOf( tenMinuteBuffer.getMinimum( WeatherDatumIdentifier.WIND_SPEED ), NonSI.MILES_PER_HOUR ) ) );
 		event.add( new WeatherDatum( WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG, DecimalMeasure.valueOf( tenMinuteBuffer.getAverage( WeatherDatumIdentifier.WIND_SPEED ), NonSI.MILES_PER_HOUR ) ) );
 		event.add( new WeatherDatum( WeatherDatumIdentifier.WIND_SPEED_10_MIN_MAX, DecimalMeasure.valueOf( tenMinuteBuffer.getMaximum( WeatherDatumIdentifier.WIND_SPEED ), NonSI.MILES_PER_HOUR ) ) );
-		event.add( new WeatherDatum( WeatherDatumIdentifier.WIND_DIRECTION_10_MIN_AVG, DecimalMeasure.valueOf( TimedEventBuffer.getAngleInDegrees( tenMinuteBuffer.getAverageVector( WeatherDatumIdentifier.WIND_SPEED, WeatherDatumIdentifier.WIND_DIRECTION ) ), NonSI.DEGREE_ANGLE ) ) );
+		if( windDirection10MinAvg != Double.NaN ) event.add( new WeatherDatum( WeatherDatumIdentifier.WIND_DIRECTION_10_MIN_AVG, DecimalMeasure.valueOf( windDirection10MinAvg, NonSI.DEGREE_ANGLE ) ) );
 
 		double temperatureTrend = oneHourBuffer.getTrendPerHour( WeatherDatumIdentifier.TEMPERATURE );
 		double humidityTrend = threeHourBuffer.getTrendPerHour( WeatherDatumIdentifier.HUMIDITY );

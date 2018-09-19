@@ -93,6 +93,7 @@ public class TimedEventBuffer {
 	}
 
 	public static double getAngleInDegrees( Float64Vector v ) {
+		if( v.normValue() == 0 ) return Double.NaN;
 		double degrees = MathLib.toDegrees( Math.atan2( v.getValue( 1 ), v.getValue( 0 ) ) );
 		if( degrees < 0 ) degrees += 360;
 		return degrees;
