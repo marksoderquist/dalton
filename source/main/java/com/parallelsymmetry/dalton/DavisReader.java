@@ -217,43 +217,46 @@ public class DavisReader extends Worker implements WeatherDataReader {
 
 		// Barometer
 		int barRaw = getUnsignedByte( buffer[ 7 ] ) + (getUnsignedByte( buffer[ 8 ] ) << 8);
-		double pressure = barRaw == 0x7fff ? Float.NaN : barRaw / 1000.0f;
+		double pressure = barRaw == 0x7fff ? Double.NaN : barRaw / 1000.0f;
+		
+		// Fix the Bluewing station pressure
+		pressure = 0.7034482759 * pressure + 9.14662069;
 
 		// Inside temperature
 		int tempInsideRaw = getUnsignedByte( buffer[ 9 ] ) + (getUnsignedByte( buffer[ 10 ] ) << 8);
-		double tempInside = tempInsideRaw == 0x7fff ? Float.NaN : tempInsideRaw / 10.0f;
+		double tempInside = tempInsideRaw == 0x7fff ? Double.NaN : tempInsideRaw / 10.0f;
 
 		// Inside humidity
 		int humidInsideRaw = getUnsignedByte( buffer[ 11 ] );
-		double humidInside = humidInsideRaw == 0xff ? Float.NaN : humidInsideRaw;
+		double humidInside = humidInsideRaw == 0xff ? Double.NaN : humidInsideRaw;
 
 		// Outside temperature
 		int tempOutsideRaw = getUnsignedByte( buffer[ 12 ] ) + ((buffer[ 13 ]) << 8);
-		double tempOutside = tempOutsideRaw == 0x7fff ? Float.NaN : tempOutsideRaw / 10.0f;
+		double tempOutside = tempOutsideRaw == 0x7fff ? Double.NaN : tempOutsideRaw / 10.0f;
 
 		// Wind speed
 		int windSpeedRaw = getUnsignedByte( buffer[ 14 ] );
-		double windSpeed = windSpeedRaw == 0xff ? Float.NaN : windSpeedRaw;
+		double windSpeed = windSpeedRaw == 0xff ? Double.NaN : windSpeedRaw;
 
 		// Wind speed 10 minute average
 		int windSpeedTenMinAvgRaw = getUnsignedByte( buffer[ 15 ] );
-		double windSpeedTenMinAvg = windSpeedTenMinAvgRaw == 0xff ? Float.NaN : windSpeedTenMinAvgRaw;
+		double windSpeedTenMinAvg = windSpeedTenMinAvgRaw == 0xff ? Double.NaN : windSpeedTenMinAvgRaw;
 
 		// Wind direction
 		int windDirectionRaw = getUnsignedByte( buffer[ 16 ] ) + (getUnsignedByte( buffer[ 17 ] ) << 8);
-		double windDirection = windDirectionRaw == 0x7fff ? Float.NaN : windDirectionRaw;
+		double windDirection = windDirectionRaw == 0x7fff ? Double.NaN : windDirectionRaw;
 
 		// Outside humidity
 		int humidOutsideRaw = getUnsignedByte( buffer[ 33 ] );
-		double humidOutside = humidOutsideRaw == 0xff ? Float.NaN : humidOutsideRaw;
+		double humidOutside = humidOutsideRaw == 0xff ? Double.NaN : humidOutsideRaw;
 
 		// Rain rate
 		int rainRateRaw = getUnsignedByte( buffer[ 41 ] ) + (getUnsignedByte( buffer[ 42 ] ) << 8);
-		double rainRate = rainRateRaw == 0xffff ? Float.NaN : rainRateRaw / 100.0f;
+		double rainRate = rainRateRaw == 0xffff ? Double.NaN : rainRateRaw / 100.0f;
 
 		// Daily rain total
 		int rainTotalDailyRaw = getUnsignedByte( buffer[ 50 ] ) + (getUnsignedByte( buffer[ 51 ] ) << 8);
-		double rainTotalDaily = rainTotalDailyRaw == 0x7fff ? Float.NaN : rainTotalDailyRaw / 100.0f;
+		double rainTotalDaily = rainTotalDailyRaw == 0x7fff ? Double.NaN : rainTotalDailyRaw / 100.0f;
 
 		//		Log.write();
 		//		Log.write( "Read: ", TextUtil.toPrintableString( buffer, 0, 99 ) );
@@ -263,7 +266,6 @@ public class DavisReader extends Worker implements WeatherDataReader {
 		//		Log.write( "Humid in: ", TextUtil.toPrintableString( buffer, 1, 1 ), " ", humidInside + "%" );
 		//		Log.write( "Temp out: ", TextUtil.toPrintableString( buffer, 12, 2 ), " ", tempOutside );
 		//		Log.write( "Wind speed: ", TextUtil.toPrintableString( buffer, 14, 1 ), " ", windSpeed );
-		//		Log.write( "Wind speed 10 min. avg.: ", TextUtil.toPrintableString( buffer, 15, 1 ), " ", windSpeedTenMinAvg );
 		//		Log.write( "Wind direction: ", TextUtil.toPrintableString( buffer, 16, 2 ), " ", windDirection );
 		//
 		//		Log.write( "Humid out: ", TextUtil.toPrintableString( buffer, 33, 1 ), " ", humidOutside );
@@ -276,7 +278,6 @@ public class DavisReader extends Worker implements WeatherDataReader {
 
 		WeatherDatum windSpeedDatum = new WeatherDatum( WeatherDatumIdentifier.WIND_SPEED, DecimalMeasure.valueOf( windSpeed, NonSI.MILES_PER_HOUR ) );
 		WeatherDatum windDirectionDatum = new WeatherDatum( WeatherDatumIdentifier.WIND_DIRECTION, DecimalMeasure.valueOf( windDirection, NonSI.DEGREE_ANGLE ) );
-		WeatherDatum windSpeedTenMinAvgDatum = new WeatherDatum( WeatherDatumIdentifier.WIND_SPEED_10_MIN_AVG, DecimalMeasure.valueOf( windSpeedTenMinAvg, NonSI.MILES_PER_HOUR ) );
 
 		WeatherDatum rainRateDatum = new WeatherDatum( WeatherDatumIdentifier.RAIN_RATE, DecimalMeasure.valueOf( rainRate, NonSI.INCH.divide( NonSI.HOUR ) ) );
 		WeatherDatum rainTotalDailyDatum = new WeatherDatum( WeatherDatumIdentifier.RAIN_TOTAL_DAILY, DecimalMeasure.valueOf( rainTotalDaily, NonSI.INCH ) );
@@ -284,7 +285,7 @@ public class DavisReader extends Worker implements WeatherDataReader {
 		WeatherDatum temperatureInsideDatum = new WeatherDatum( WeatherDatumIdentifier.TEMPERATURE_INSIDE, DecimalMeasure.valueOf( tempInside, NonSI.FAHRENHEIT ) );
 		WeatherDatum humidityInsideDatum = new WeatherDatum( WeatherDatumIdentifier.HUMIDITY_INSIDE, DecimalMeasure.valueOf( humidInside, NonSI.PERCENT ) );
 
-		fireWeatherEvent( new WeatherDataEvent( temperatureDatum, pressureDatum, humidityDatum, windSpeedDatum, windDirectionDatum, rainRateDatum, rainTotalDailyDatum, temperatureInsideDatum, humidityInsideDatum, windSpeedTenMinAvgDatum ) );
+		fireWeatherEvent( new WeatherDataEvent( temperatureDatum, pressureDatum, humidityDatum, windSpeedDatum, windDirectionDatum, rainRateDatum, rainTotalDailyDatum, temperatureInsideDatum, humidityInsideDatum ) );
 	}
 
 	private void fireWeatherEvent( WeatherDataEvent event ) {
