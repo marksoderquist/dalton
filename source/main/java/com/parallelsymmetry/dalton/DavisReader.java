@@ -219,9 +219,6 @@ public class DavisReader extends Worker implements WeatherDataReader {
 		int barRaw = getUnsignedByte( buffer[ 7 ] ) + (getUnsignedByte( buffer[ 8 ] ) << 8);
 		double pressure = barRaw == 0x7fff ? Double.NaN : barRaw / 1000.0f;
 		
-		// Fix the Bluewing station pressure
-		pressure = 0.7034482759 * pressure + 9.14662069;
-
 		// Inside temperature
 		int tempInsideRaw = getUnsignedByte( buffer[ 9 ] ) + (getUnsignedByte( buffer[ 10 ] ) << 8);
 		double tempInside = tempInsideRaw == 0x7fff ? Double.NaN : tempInsideRaw / 10.0f;
