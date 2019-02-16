@@ -2,6 +2,7 @@ package com.parallelsymmetry.dalton;
 
 import com.parallelsymmetry.utility.math.Statistics;
 import javolution.lang.MathLib;
+import org.jscience.JScience;
 import org.jscience.mathematics.vector.Float64Vector;
 
 import java.util.Deque;
@@ -94,7 +95,7 @@ public class TimedEventBuffer {
 
 	public static double getAngleInDegrees( Float64Vector v ) {
 		if( v.normValue() == 0 ) return Double.NaN;
-		double degrees = MathLib.toDegrees( Math.atan2( v.getValue( 1 ), v.getValue( 0 ) ) );
+		double degrees = MathLib.toDegrees( Math.atan2( v.getValue( 0 ), v.getValue( 1 ) ) );
 		if( degrees < 0 ) degrees += 360;
 		return degrees;
 	}
@@ -108,7 +109,7 @@ public class TimedEventBuffer {
 			double m = event.get( magnitude ).getMeasure().getValue().doubleValue();
 			double d = event.get( direction ).getMeasure().getValue().doubleValue();
 
-			double a = MathLib.toRadians( d );
+			double a = Math.toRadians( d );
 
 			double x = m * Math.sin( a );
 			double y = m * Math.cos( a );

@@ -11,6 +11,13 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public abstract class WeatherTestCase extends TestCase {
 
+	protected WeatherDataEvent generateWindEvent( Long timestamp, Double windSpeed, Double windDirection ) {
+		WeatherDatum timestampDatum = new WeatherDatum( WeatherDatumIdentifier.TIMESTAMP, DecimalMeasure.valueOf( timestamp == null ? System.currentTimeMillis() : timestamp, SI.MILLI( SI.SECOND ) ) );
+		WeatherDatum windSpeedDatum = new WeatherDatum( WeatherDatumIdentifier.WIND_SPEED, DecimalMeasure.valueOf( windSpeed, NonSI.MILES_PER_HOUR ) );
+		WeatherDatum windDirectionDatum = new WeatherDatum( WeatherDatumIdentifier.WIND_DIRECTION, DecimalMeasure.valueOf( windDirection, NonSI.DEGREE_ANGLE ) );
+		return new WeatherDataEvent( timestampDatum, windSpeedDatum, windDirectionDatum );
+	}
+
 	protected WeatherDataEvent generateEvent( Long timestamp, Double tempOutside, Double pressure, Double humidOutside, Double windSpeed, Double windDirection, Double windSpeedTenMinAvg, Double rainRate, Double rainTotalDaily, Double tempInside, Double humidInside ) {
 		WeatherDatum timestampDatum = new WeatherDatum( WeatherDatumIdentifier.TIMESTAMP, DecimalMeasure.valueOf( timestamp == null ? System.currentTimeMillis() : timestamp, SI.MILLI( SI.SECOND ) ) );
 
