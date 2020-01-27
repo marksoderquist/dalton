@@ -13,7 +13,7 @@
 
 	<groupId>com.parallelsymmetry</groupId>
 	<artifactId>dalton</artifactId>
-	<version>1.2u38</version>
+	<version>1.2u39</version>
 	<packaging>jar</packaging>
 
 	<name>Dalton Weather Reader</name>
@@ -23,7 +23,7 @@
 	<repositories>
 		<repository>
 			<id>psm</id>
-			<url>https://repo.xeomar.com/psm</url>
+			<url>https://repo.avereon.com/psm</url>
 		</repository>
 	</repositories>
 
