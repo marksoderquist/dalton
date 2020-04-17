@@ -16,7 +16,7 @@ public class Program extends Service {
 	public Program() {
 		station = new WeatherStation();
 		station.addPublisher( new MarkSoderquistWeatherPublisher() );
-		station.addPublisher( new PerformWeatherPublisher( this ) );
+		//station.addPublisher( new PerformWeatherPublisher( this ) );
 		station.addPublisher( new WeatherUndergroundPublisher( this ) );
 
 		reader = new DavisReader();
