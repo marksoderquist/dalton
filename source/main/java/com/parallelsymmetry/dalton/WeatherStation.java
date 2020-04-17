@@ -128,6 +128,7 @@ public class WeatherStation {
 		message.append( " H=" ).append( event.getValue( WeatherDatumIdentifier.HUMIDITY ) );
 		message.append( " P=" ).append( event.getValue( WeatherDatumIdentifier.PRESSURE ) );
 		message.append( " W=" ).append( event.getValue( WeatherDatumIdentifier.WIND_SPEED ) );
+		message.append( " G=" ).append( event.getValue( WeatherDatumIdentifier.WIND_SPEED_2_MIN_MAX ) );
 		Log.write( message );
 	}
 

@@ -14,12 +14,13 @@ public class Program extends Service {
 	}
 
 	public Program() {
-		reader = new DavisReader();
 		station = new WeatherStation();
-		reader.addWeatherStation( station );
 		station.addPublisher( new MarkSoderquistWeatherPublisher() );
 		station.addPublisher( new PerformWeatherPublisher( this ) );
 		station.addPublisher( new WeatherUndergroundPublisher( this ) );
+
+		reader = new DavisReader();
+		reader.addWeatherStation( station );
 	}
 
 	public WeatherStation getWeatherStation() {
