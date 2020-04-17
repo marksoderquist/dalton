@@ -16,7 +16,7 @@ public class WeatherUndergroundPublisher extends HttpPublisher {
 
 	public static final String WUNDERGROUND_DATE_FORMAT = "yyyy-MM-dd+HH'%3A'mm'%3A'ss";
 
-	private Program program;
+	private final Program program;
 
 	public WeatherUndergroundPublisher( Program program ) {
 		this.program = program;
