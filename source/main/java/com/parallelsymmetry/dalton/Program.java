@@ -14,7 +14,7 @@ public class Program extends Service {
 	}
 
 	public Program() {
-		station = new WeatherStation();
+		station = new BluewingWeatherStation();
 		station.addPublisher( new MarkSoderquistWeatherPublisher() );
 		//station.addPublisher( new PerformWeatherPublisher( this ) );
 		station.addPublisher( new WeatherUndergroundPublisher( this ) );
