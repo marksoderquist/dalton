@@ -123,7 +123,7 @@ public class WeatherStation {
 		}
 
 		// Log summary
-		StringBuilder message = new StringBuilder( "Publishing metrics: " );
+		StringBuilder message = new StringBuilder( "Published metrics: " );
 		message.append( " T=" ).append( event.getValue( WeatherDatumIdentifier.TEMPERATURE ) );
 		message.append( " H=" ).append( event.getValue( WeatherDatumIdentifier.HUMIDITY ) );
 		message.append( " P=" ).append( event.getValue( WeatherDatumIdentifier.PRESSURE ) );

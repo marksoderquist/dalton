@@ -29,3 +29,4 @@ sudo chmod 644 $DALTON_HOME/lib/*
 sudo cp $DALTON_HOME/bin/dalton.service /etc/init.d/dalton
 sudo chmod a+x /etc/init.d/dalton
 sudo systemctl daemon-reload
+sudo systemctl restart dalton
