@@ -15,7 +15,7 @@ public class MarkSoderquistWeatherPublisher extends HttpPublisher {
 		Map<String, String> headers = new HashMap<>();
 		headers.put( "content-type", "application/json" );
 		headers.put( "Authorization", "Basic ZGFsdG9uOkRvNUpwTW84ejVoU3hVaTQ=" );
-		return rest( "PUT", "http://mark.soderquist.net/weather/api/station?id=bluewing", headers, generatePayload( event ) ).getCode();
+		return rest( "PUT", "https://mark.soderquist.net/weather/api/station?id=bluewing", headers, generatePayload( event ) ).getCode();
 	}
 
 	public byte[] generatePayload( WeatherDataEvent event ) throws IOException {
