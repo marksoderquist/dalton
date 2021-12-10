@@ -202,7 +202,7 @@ public class DavisReader extends Worker implements WeatherDataReader {
 		Log.write( Log.DEBUG, "Bytes read in getData: ", read );
 		if( read <= 0 ) return;
 
-		// Shift the buffer left on byte
+		// Shift the buffer left one byte
 		System.arraycopy( buffer, 1, buffer, 0, 99 );
 
 		// Check the CRC to ensure good data
