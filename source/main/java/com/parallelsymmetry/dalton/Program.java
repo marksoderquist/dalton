@@ -5,18 +5,18 @@ import com.parallelsymmetry.utility.Parameters;
 
 public class Program extends Service {
 
-	private WeatherStation station;
+	private final WeatherStation station;
 
-	private DavisReader reader;
+	private final DavisReader reader;
 
-	public static final void main( String[] commands ) {
+	public static void main( String[] commands ) {
 		new Program().process( commands );
 	}
 
 	public Program() {
 		station = new BluewingWeatherStation();
 		station.addPublisher( new MarkSoderquistWeatherPublisher() );
-		//station.addPublisher( new PerformWeatherPublisher( this ) );
+		station.addPublisher( new PerformWeatherPublisher( this ) );
 		station.addPublisher( new WeatherUndergroundPublisher( this ) );
 
 		reader = new DavisReader();
