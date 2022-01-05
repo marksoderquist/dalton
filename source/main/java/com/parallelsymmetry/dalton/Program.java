@@ -16,7 +16,8 @@ public class Program extends Service {
 	public Program() {
 		station = new BluewingWeatherStation();
 		station.addPublisher( new MarkSoderquistWeatherPublisher() );
-		station.addPublisher( new PerformWeatherPublisher( this ) );
+		// This is being sent to Perform from the mark.soderquist.net weather server
+		//station.addPublisher( new PerformWeatherPublisher( this ) );
 		station.addPublisher( new WeatherUndergroundPublisher( this ) );
 
 		reader = new DavisReader();
