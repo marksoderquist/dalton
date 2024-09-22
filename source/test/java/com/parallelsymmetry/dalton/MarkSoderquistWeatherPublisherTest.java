@@ -1,14 +1,13 @@
 package com.parallelsymmetry.dalton;
 
 import com.parallelsymmetry.utility.TextUtil;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import javax.measure.DecimalMeasure;
 import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class MarkSoderquistWeatherPublisherTest {
 
@@ -32,7 +31,7 @@ public class MarkSoderquistWeatherPublisherTest {
 		builder.append( ",\"humidity\":25.0" );
 		builder.append( "}" );
 
-		assertThat( new String( publisher.generatePayload( event ), TextUtil.DEFAULT_ENCODING ), is( builder.toString() ) );
+		assertThat( new String( publisher.generatePayload( event ), TextUtil.DEFAULT_ENCODING ) ).isEqualTo( builder.toString() );
 	}
 
 }

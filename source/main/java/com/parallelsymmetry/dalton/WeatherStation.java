@@ -81,7 +81,7 @@ public class WeatherStation {
 		event.add( new WeatherDatum( WeatherDatumIdentifier.WIND_SPEED_2_MIN_MIN, DecimalMeasure.valueOf( twoMinuteBuffer.getMinimum( WeatherDatumIdentifier.WIND_SPEED ), NonSI.MILES_PER_HOUR ) ) );
 		event.add( new WeatherDatum( WeatherDatumIdentifier.WIND_SPEED_2_MIN_AVG, DecimalMeasure.valueOf( twoMinuteBuffer.getAverage( WeatherDatumIdentifier.WIND_SPEED ), NonSI.MILES_PER_HOUR ) ) );
 		event.add( new WeatherDatum( WeatherDatumIdentifier.WIND_SPEED_2_MIN_MAX, DecimalMeasure.valueOf( twoMinuteBuffer.getMaximum( WeatherDatumIdentifier.WIND_SPEED ), NonSI.MILES_PER_HOUR ) ) );
-		if( windDirection2MinAvg != Double.NaN) event.add( new WeatherDatum( WeatherDatumIdentifier.WIND_DIRECTION_2_MIN_AVG, DecimalMeasure.valueOf( windDirection2MinAvg, NonSI.DEGREE_ANGLE ) ) );
+		if( windDirection2MinAvg != Double.NaN ) event.add( new WeatherDatum( WeatherDatumIdentifier.WIND_DIRECTION_2_MIN_AVG, DecimalMeasure.valueOf( windDirection2MinAvg, NonSI.DEGREE_ANGLE ) ) );
 
 		// Five minute statistics
 		event.add( new WeatherDatum( WeatherDatumIdentifier.WIND_SPEED_5_MIN_MIN, DecimalMeasure.valueOf( fiveMinuteBuffer.getMinimum( WeatherDatumIdentifier.WIND_SPEED ), NonSI.MILES_PER_HOUR ) ) );
@@ -124,11 +124,11 @@ public class WeatherStation {
 
 		// Log summary
 		StringBuilder message = new StringBuilder( "Published metrics: " );
-		message.append( " T=" ).append( event.getValue( WeatherDatumIdentifier.TEMPERATURE ) );
-		message.append( " H=" ).append( event.getValue( WeatherDatumIdentifier.HUMIDITY ) );
-		message.append( " P=" ).append( event.getValue( WeatherDatumIdentifier.PRESSURE ) );
-		message.append( " W=" ).append( event.getValue( WeatherDatumIdentifier.WIND_SPEED ) );
-		message.append( " G=" ).append( event.getValue( WeatherDatumIdentifier.WIND_SPEED_2_MIN_MAX ) );
+		message.append( " T=" ).append( (Double)event.getValue( WeatherDatumIdentifier.TEMPERATURE ) );
+		message.append( " H=" ).append( (Double)event.getValue( WeatherDatumIdentifier.HUMIDITY ) );
+		message.append( " P=" ).append( (Double)event.getValue( WeatherDatumIdentifier.PRESSURE ) );
+		message.append( " W=" ).append( (Double)event.getValue( WeatherDatumIdentifier.WIND_SPEED ) );
+		message.append( " G=" ).append( (Double)event.getValue( WeatherDatumIdentifier.WIND_SPEED_2_MIN_MAX ) );
 		Log.write( message );
 	}
 

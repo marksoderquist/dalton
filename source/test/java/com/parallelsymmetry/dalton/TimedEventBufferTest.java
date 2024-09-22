@@ -1,48 +1,47 @@
 package com.parallelsymmetry.dalton;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TimedEventBufferTest extends WeatherTestCase {
 
 	@Test
 	public void testGetAverage() {
 		TimedEventBuffer buffer = generateBuffer();
-		assertThat( buffer.getAverage( WeatherDatumIdentifier.TEMPERATURE ), is( 60.9 ) );
-		assertThat( buffer.getAverage( WeatherDatumIdentifier.WIND_SPEED ), is( 10.0 ) );
-		assertThat( buffer.getEvents().size(), is( 6 ) );
+		assertThat( buffer.getAverage( WeatherDatumIdentifier.TEMPERATURE ) ).isEqualTo( 60.9 );
+		assertThat( buffer.getAverage( WeatherDatumIdentifier.WIND_SPEED ) ).isEqualTo( 10.0 );
+		assertThat( buffer.getEvents().size() ).isEqualTo( 6 );
 	}
 
 	@Test
 	public void testGetMinimum() {
 		TimedEventBuffer buffer = generateBuffer();
-		assertThat( buffer.getMinimum( WeatherDatumIdentifier.TEMPERATURE ), is( 60.4 ) );
-		assertThat( buffer.getMinimum( WeatherDatumIdentifier.WIND_SPEED ), is( 9.0 ) );
-		assertThat( buffer.getEvents().size(), is( 6 ) );
+		assertThat( buffer.getMinimum( WeatherDatumIdentifier.TEMPERATURE ) ).isEqualTo( 60.4 );
+		assertThat( buffer.getMinimum( WeatherDatumIdentifier.WIND_SPEED ) ).isEqualTo( 9.0 );
+		assertThat( buffer.getEvents().size() ).isEqualTo( 6 );
 	}
 
 	@Test
 	public void testGetMaximum() {
 		TimedEventBuffer buffer = generateBuffer();
-		assertThat( buffer.getMaximum( WeatherDatumIdentifier.TEMPERATURE ), is( 61.4 ) );
-		assertThat( buffer.getMaximum( WeatherDatumIdentifier.WIND_SPEED ), is( 11.0 ) );
-		assertThat( buffer.getEvents().size(), is( 6 ) );
+		assertThat( buffer.getMaximum( WeatherDatumIdentifier.TEMPERATURE ) ).isEqualTo( 61.4 );
+		assertThat( buffer.getMaximum( WeatherDatumIdentifier.WIND_SPEED ) ).isEqualTo( 11.0 );
+		assertThat( buffer.getEvents().size() ).isEqualTo( 6 );
 	}
 
 	@Test
 	public void testGetTrendPerHour() {
 		TimedEventBuffer buffer = generateBuffer();
-		assertThat( buffer.getTrendPerHour( WeatherDatumIdentifier.TEMPERATURE ), is( 360.00000000000034 ) );
-		assertThat( buffer.getTrendPerHour( WeatherDatumIdentifier.WIND_SPEED ), is( 0.0 ) );
-		assertThat( buffer.getEvents().size(), is( 6 ) );
+		assertThat( buffer.getTrendPerHour( WeatherDatumIdentifier.TEMPERATURE ) ).isEqualTo( 360.00000000000034 );
+		assertThat( buffer.getTrendPerHour( WeatherDatumIdentifier.WIND_SPEED ) ).isEqualTo( 0.0 );
+		assertThat( buffer.getEvents().size() ).isEqualTo( 6 );
 	}
 
 	@Test
 	public void testWindAverage() {
 		TimedEventBuffer buffer = generateWindBuffer();
-		assertThat( TimedEventBuffer.getAngleInDegrees( buffer.getAverageVector( WeatherDatumIdentifier.WIND_SPEED, WeatherDatumIdentifier.WIND_DIRECTION ) ), is( 350.0 ) );
+		assertThat( TimedEventBuffer.getAngleInDegrees( buffer.getAverageVector( WeatherDatumIdentifier.WIND_SPEED, WeatherDatumIdentifier.WIND_DIRECTION ) ) ).isEqualTo( 350.0 );
 	}
 
 	private TimedEventBuffer generateBuffer() {

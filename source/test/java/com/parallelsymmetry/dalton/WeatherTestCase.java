@@ -1,6 +1,7 @@
 package com.parallelsymmetry.dalton;
 
-import junit.framework.TestCase;
+
+import lombok.Getter;
 
 import javax.measure.DecimalMeasure;
 import javax.measure.unit.NonSI;
@@ -9,7 +10,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public abstract class WeatherTestCase extends TestCase {
+public abstract class WeatherTestCase {
 
 	protected WeatherDataEvent generateWindEvent( Long timestamp, Double windSpeed, Double windDirection ) {
 		WeatherDatum timestampDatum = new WeatherDatum( WeatherDatumIdentifier.TIMESTAMP, DecimalMeasure.valueOf( timestamp == null ? System.currentTimeMillis() : timestamp, SI.MILLI( SI.SECOND ) ) );
@@ -38,16 +39,13 @@ public abstract class WeatherTestCase extends TestCase {
 		return new WeatherDataEvent( timestampDatum, temperatureDatum, pressureDatum, humidityDatum, windSpeedDatum, windDirectionDatum, rainRateDatum, rainTotalDailyDatum, temperatureInsideDatum, humidityInsideDatum, windSpeedTenMinAvgDatum );
 	}
 
-	protected class WeatherDataCollector implements WeatherDataPublisher {
+	@Getter
+	protected static class WeatherDataCollector implements WeatherDataPublisher {
 
-		private List<WeatherDataEvent> events;
+		private final List<WeatherDataEvent> events;
 
 		public WeatherDataCollector() {
 			events = new CopyOnWriteArrayList<>();
-		}
-
-		public List<WeatherDataEvent> getEvents() {
-			return events;
 		}
 
 		@Override

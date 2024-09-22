@@ -2,7 +2,7 @@ package com.parallelsymmetry.dalton;
 
 import com.parallelsymmetry.utility.DateUtil;
 import com.parallelsymmetry.utility.TextUtil;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import javax.measure.DecimalMeasure;
 import javax.measure.unit.NonSI;
@@ -10,14 +10,13 @@ import java.net.URLEncoder;
 import java.util.Date;
 import java.util.TimeZone;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class WeatherUndergroundPublisherTest {
 
 	@Test
 	public void testDateFormat() {
-		assertThat( DateUtil.format( new Date( 0 ), WeatherUndergroundPublisher.WUNDERGROUND_DATE_FORMAT, TimeZone.getTimeZone( "UTC" ) ), is( "1970-01-01+00%3A00%3A00" ) );
+		assertThat( DateUtil.format( new Date( 0 ), WeatherUndergroundPublisher.WUNDERGROUND_DATE_FORMAT, TimeZone.getTimeZone( "UTC" ) )).isEqualTo( "1970-01-01+00%3A00%3A00" );
 	}
 
 	@Test
@@ -50,7 +49,7 @@ public class WeatherUndergroundPublisherTest {
 		builder.append( "&softwaretype=dalton" ).append( URLEncoder.encode( " " + release, TextUtil.DEFAULT_ENCODING ) );
 
 		// Test generated payload
-		assertThat( publisher.generatePayload( station, event ), is( builder.toString() ) );
+		assertThat( publisher.generatePayload( station, event )).isEqualTo( builder.toString() );
 	}
 
 }

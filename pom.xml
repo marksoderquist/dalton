@@ -6,9 +6,9 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>com.parallelsymmetry.pom</groupId>
+		<groupId>com.avereon.pom</groupId>
 		<artifactId>jar</artifactId>
-		<version>2.0.0-SNAPSHOT</version>
+		<version>3.5.4</version>
 	</parent>
 
 	<groupId>com.parallelsymmetry</groupId>
@@ -22,8 +22,8 @@
 
 	<repositories>
 		<repository>
-			<id>psm</id>
-			<url>https://repo.avereon.com/psm</url>
+			<id>avn</id>
+			<url>https://repo.avereon.com/avn</url>
 		</repository>
 	</repositories>
 
@@ -50,7 +50,7 @@
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-core</artifactId>
-			<version>2.6.3</version>
+			<version>2.17.2</version>
 		</dependency>
 
 	</dependencies>
@@ -77,15 +77,6 @@
 		<finalName>dalton</finalName>
 
 		<plugins>
-
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<configuration>
-					<source>1.7</source>
-					<target>1.7</target>
-				</configuration>
-			</plugin>
 
 			<plugin>
 				<artifactId>maven-jar-plugin</artifactId>
