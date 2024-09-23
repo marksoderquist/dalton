@@ -5,10 +5,9 @@ module com.parallelsymmetry.dalton {
 
 	// Compile and runtime
 	requires jscience;
-	requires utility;
 	requires purejavacomm;
 	requires com.fasterxml.jackson.core;
-	requires service;
 	requires java.logging;
-
+	requires com.parallelsymmetry.utility;
+	requires com.parallelsymmetry.service;
 }
