@@ -25,6 +25,7 @@ public class MarkSoderquistWeatherPublisherTest {
 
 		StringBuilder builder = new StringBuilder();
 		builder.append( "{" );
+		builder.append( "\"unitSystem\":\"IMPERIAL\",");
 		builder.append( "\"timestamp\":" ).append( timestamp );
 		builder.append( ",\"temperature\":60.0" );
 		builder.append( ",\"pressure\":29.92" );
