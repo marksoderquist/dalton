@@ -25,11 +25,11 @@ public class MarkSoderquistWeatherPublisherTest {
 
 		StringBuilder builder = new StringBuilder();
 		builder.append( "{" );
-		builder.append( "\"unitSystem\":\"IMPERIAL\",");
 		builder.append( "\"timestamp\":" ).append( timestamp );
 		builder.append( ",\"temperature\":60.0" );
 		builder.append( ",\"pressure\":29.92" );
 		builder.append( ",\"humidity\":25.0" );
+		builder.append( ",\"unitSystem\":\"IMPERIAL\"");
 		builder.append( "}" );
 
 		assertThat( new String( publisher.generatePayload( event ), TextUtil.DEFAULT_ENCODING ) ).isEqualTo( builder.toString() );

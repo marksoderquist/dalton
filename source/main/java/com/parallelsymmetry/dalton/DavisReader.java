@@ -32,17 +32,17 @@ public class DavisReader extends Worker implements WeatherDataReader {
 
 	private static final int READ_INTERVAL = 500;
 
+	private static final String COMM_PORT = "/dev/ttyUSB0";
+
 	private boolean useConsole = false;
 
-	private String port = "/dev/ttyUSB0";
-
-	private Collection<WeatherStation> stations;
+	private final Collection<WeatherStation> stations;
 
 	private Thread pollingThread;
 
 	private long lastPoll;
 
-	private Timer timer;
+	private final Timer timer;
 
 	private SerialPort serialPort;
 
@@ -61,8 +61,8 @@ public class DavisReader extends Worker implements WeatherDataReader {
 				pollingThread = Thread.currentThread();
 
 				// Open the serial port and read from it
-				Log.write( Log.DEBUG, "Open the serial port: " + port );
-				CommPortIdentifier identifier = CommPortIdentifier.getPortIdentifier( port );
+				Log.write( Log.DEBUG, "Open the serial port: " + COMM_PORT );
+				CommPortIdentifier identifier = CommPortIdentifier.getPortIdentifier( COMM_PORT );
 				serialPort = (SerialPort)identifier.open( getName(), 0 );
 				serialPort.setSerialPortParams( 19200, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE );
 
@@ -319,9 +319,9 @@ public class DavisReader extends Worker implements WeatherDataReader {
 		return BarometerTrend.UNKNOWN;
 	}
 
-	private class WatcherOutputStream extends OutputStream {
+	private static class WatcherOutputStream extends OutputStream {
 
-		private PrintStream output;
+		private final PrintStream output;
 
 		public WatcherOutputStream( OutputStream output ) {
 			this.output = new PrintStream( output );
