@@ -24,6 +24,8 @@ public class MarkSoderquistWeatherPublisher extends HttpPublisher {
 		JsonGenerator generator = new JsonFactory().createGenerator( stream );
 		generator.writeStartObject();
 
+		generator.writeStringField( "unitSystem", "IMPERIAL" );
+
 		writeLongField( event, generator, "timestamp", WeatherDatumIdentifier.TIMESTAMP );
 		writeDoubleField( event, generator, "temperature", WeatherDatumIdentifier.TEMPERATURE );
 		writeDoubleField( event, generator, "pressure", WeatherDatumIdentifier.PRESSURE );
