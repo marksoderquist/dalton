@@ -21,7 +21,7 @@ public class Program extends Service {
 		markSoderquistNetPublisherSettings.flush();
 
 		station = new BluewingWeatherStation();
-		station.addPublisher( new MarkSoderquistNetPublisher(markSoderquistNetPublisherSettings.get( "authentication", null )) );
+		station.addPublisher( new MarkSoderquistNetPublisher(markSoderquistNetPublisherSettings.get( "authorization", null )) );
 		// This is being sent to Perform from the mark.soderquist.net weather server
 		//station.addPublisher( new PerformWeatherPublisher( this ) );
 		station.addPublisher( new WeatherUndergroundPublisher( this ) );

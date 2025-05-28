@@ -2,9 +2,7 @@ package com.parallelsymmetry.dalton;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.parallelsymmetry.service.Service;
 import com.parallelsymmetry.utility.log.Log;
-import com.parallelsymmetry.utility.setting.Settings;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -13,18 +11,18 @@ import java.util.Map;
 
 public class MarkSoderquistNetPublisher extends HttpPublisher {
 
-	private final String authentication;
+	private final String authorization;
 
-	public MarkSoderquistNetPublisher( String authentication) {
-		this.authentication = authentication;
+	public MarkSoderquistNetPublisher( String authorization ) {
+		this.authorization = authorization;
 	}
 
 	@Override
 	public int publish( WeatherStation station, WeatherDataEvent event ) throws IOException {
-		Log.write( Log.INFO, "Publishing weather data with: " + authentication );
+		Log.write( Log.INFO, "Authorization: " + authorization );
 		Map<String, String> headers = new HashMap<>();
 		headers.put( "content-type", "application/json" );
-		headers.put( "Authorization", authentication );
+		headers.put( "Authorization", "Basic ZGFsdG9uOkRvNUpwTW84ejVoU3hVaTQ=" );
 		return rest( "PUT", "https://mark.soderquist.net/weather/api/station?id=bluewing", headers, generatePayload( event ) ).getCode();
 	}
 
