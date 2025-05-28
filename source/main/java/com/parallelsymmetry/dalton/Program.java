@@ -14,6 +14,8 @@ public class Program extends Service {
 	}
 
 	public Program() {
+		// FIXME Load program properties from a file
+
 		station = new BluewingWeatherStation();
 		station.addPublisher( new MarkSoderquistWeatherPublisher() );
 		// This is being sent to Perform from the mark.soderquist.net weather server
