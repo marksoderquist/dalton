@@ -27,8 +27,6 @@ public class Program extends Service {
 	@Override
 	protected void startService( Parameters parameters ) throws Exception {
 		Settings markSoderquistNetPublisherSettings = getSettings().getNode( "products/net.soderquist.mark.weather" );
-		markSoderquistNetPublisherSettings.put( "authorization", "Basic ZGFsdG9uOkRvNUpwTW84ejVoU3hVaTQ=" );
-		markSoderquistNetPublisherSettings.flush();
 
 		station.addPublisher( new MarkSoderquistNetPublisher(markSoderquistNetPublisherSettings.get( "authorization", null )) );
 		// This is being sent to Perform from the mark.soderquist.net weather server

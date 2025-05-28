@@ -22,7 +22,7 @@ public class MarkSoderquistNetPublisher extends HttpPublisher {
 		Log.write( Log.INFO, "Authorization: " + authorization );
 		Map<String, String> headers = new HashMap<>();
 		headers.put( "content-type", "application/json" );
-		headers.put( "Authorization", "Basic ZGFsdG9uOkRvNUpwTW84ejVoU3hVaTQ=" );
+		headers.put( "Authorization", authorization );
 		return rest( "PUT", "https://mark.soderquist.net/weather/api/station?id=bluewing", headers, generatePayload( event ) ).getCode();
 	}
 
