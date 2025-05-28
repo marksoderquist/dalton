@@ -9,11 +9,11 @@ import javax.measure.unit.SI;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class MarkSoderquistWeatherPublisherTest {
+public class MarkSoderquistNetPublisherTest {
 
 	@Test
 	public void testPayload() throws Exception {
-		MarkSoderquistWeatherPublisher publisher = new MarkSoderquistWeatherPublisher();
+		MarkSoderquistNetPublisher publisher = new MarkSoderquistNetPublisher("Basic YWRtaW");
 		long timestamp = System.currentTimeMillis();
 
 		// Populate the weather data

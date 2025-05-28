@@ -8,13 +8,19 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MarkSoderquistWeatherPublisher extends HttpPublisher {
+public class MarkSoderquistNetPublisher extends HttpPublisher {
+
+	private final String authentication;
+
+	public MarkSoderquistNetPublisher( String authentication) {
+		this.authentication = authentication;
+	}
 
 	@Override
 	public int publish( WeatherStation station, WeatherDataEvent event ) throws IOException {
 		Map<String, String> headers = new HashMap<>();
 		headers.put( "content-type", "application/json" );
-		headers.put( "Authorization", "Basic ZGFsdG9uOkRvNUpwTW84ejVoU3hVaTQ=" );
+		headers.put( "Authorization", authentication );
 		return rest( "PUT", "https://mark.soderquist.net/weather/api/station?id=bluewing", headers, generatePayload( event ) ).getCode();
 	}
 
