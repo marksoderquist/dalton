@@ -5,8 +5,6 @@ import com.parallelsymmetry.utility.Parameters;
 import com.parallelsymmetry.utility.setting.Settings;
 import lombok.Getter;
 
-import java.io.Reader;
-
 public class Program extends Service {
 
 	@Getter
@@ -28,7 +26,7 @@ public class Program extends Service {
 	protected void startService( Parameters parameters ) throws Exception {
 		Settings markSoderquistNetPublisherSettings = getSettings().getNode( "products/net.soderquist.mark.weather" );
 
-		station.addPublisher( new MarkSoderquistNetPublisher(markSoderquistNetPublisherSettings.get( "authorization", null )) );
+		station.addPublisher( new MarkSoderquistNetPublisher( markSoderquistNetPublisherSettings.get( "authorization", null ) ) );
 		// This is being sent to Perform from the mark.soderquist.net weather server
 		//station.addPublisher( new PerformWeatherPublisher( this ) );
 		station.addPublisher( new WeatherUndergroundPublisher( this ) );

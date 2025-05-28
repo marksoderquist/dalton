@@ -2,7 +2,6 @@ package com.parallelsymmetry.dalton;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.parallelsymmetry.utility.log.Log;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
