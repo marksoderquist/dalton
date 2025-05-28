@@ -2,6 +2,7 @@ package com.parallelsymmetry.dalton;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.parallelsymmetry.utility.log.Log;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -18,6 +19,7 @@ public class MarkSoderquistNetPublisher extends HttpPublisher {
 
 	@Override
 	public int publish( WeatherStation station, WeatherDataEvent event ) throws IOException {
+		Log.write( Log.INFO, "Publishing weather data with: " + authentication );
 		Map<String, String> headers = new HashMap<>();
 		headers.put( "content-type", "application/json" );
 		headers.put( "Authorization", authentication );
