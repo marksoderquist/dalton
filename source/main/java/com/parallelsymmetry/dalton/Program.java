@@ -2,10 +2,9 @@ package com.parallelsymmetry.dalton;
 
 import com.parallelsymmetry.service.Service;
 import com.parallelsymmetry.utility.Parameters;
+import com.parallelsymmetry.utility.setting.Settings;
 
 public class Program extends Service {
-
-	private static final String NET_SODERQUIST_MARK_WEATHER_AUTHENTICATION = "/products/net.soderquist.mark.weather/authentication";
 
 	private final WeatherStation station;
 
@@ -16,8 +15,11 @@ public class Program extends Service {
 	}
 
 	public Program() {
+		Settings products = getSettings().getNode( "products" );
+		Settings markSoderquistNetPublisherSettings = products.getNode( "mark.soderquist.net.weather" );
+
 		station = new BluewingWeatherStation();
-		station.addPublisher( new MarkSoderquistNetPublisher( getSettings().get( NET_SODERQUIST_MARK_WEATHER_AUTHENTICATION, null ) ) );
+		station.addPublisher( new MarkSoderquistNetPublisher(markSoderquistNetPublisherSettings.get( "authentication", null )) );
 		// This is being sent to Perform from the mark.soderquist.net weather server
 		//station.addPublisher( new PerformWeatherPublisher( this ) );
 		station.addPublisher( new WeatherUndergroundPublisher( this ) );
