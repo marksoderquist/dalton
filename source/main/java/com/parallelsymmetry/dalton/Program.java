@@ -18,6 +18,7 @@ public class Program extends Service {
 		Settings products = getSettings().getNode( "products" );
 		Settings markSoderquistNetPublisherSettings = products.getNode( "mark.soderquist.net.weather" );
 		markSoderquistNetPublisherSettings.put( "tryhere", "with this value" );
+		markSoderquistNetPublisherSettings.flush();
 
 		station = new BluewingWeatherStation();
 		station.addPublisher( new MarkSoderquistNetPublisher(markSoderquistNetPublisherSettings.get( "authentication", null )) );
