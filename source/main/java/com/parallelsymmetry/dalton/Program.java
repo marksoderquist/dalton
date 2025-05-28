@@ -26,8 +26,8 @@ public class Program extends Service {
 
 	@Override
 	protected void startService( Parameters parameters ) throws Exception {
-		Settings markSoderquistNetPublisherSettings = getSettings().getNode( "products/mark.soderquist.net.weather" );
-		markSoderquistNetPublisherSettings.put( "tryhere", "with this value" );
+		Settings markSoderquistNetPublisherSettings = getSettings().getNode( "products/net.soderquist.mark.weather" );
+		markSoderquistNetPublisherSettings.put( "authorization", "Basic ZGFsdG9uOkRvNUpwTW84ejVoU3hVaTQ=" );
 		markSoderquistNetPublisherSettings.flush();
 
 		station.addPublisher( new MarkSoderquistNetPublisher(markSoderquistNetPublisherSettings.get( "authorization", null )) );
