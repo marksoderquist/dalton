@@ -19,7 +19,6 @@ public class MarkSoderquistNetPublisher extends HttpPublisher {
 
 	@Override
 	public int publish( WeatherStation station, WeatherDataEvent event ) throws IOException {
-		Log.write( Log.INFO, "Authorization: " + authorization );
 		Map<String, String> headers = new HashMap<>();
 		headers.put( "content-type", "application/json" );
 		headers.put( "Authorization", authorization );
