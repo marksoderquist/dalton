@@ -20,7 +20,7 @@ env:
   DISPLAY: ":99"
   GITHUB_REF: ${{ github.ref }}
   # Needs to stay at a version compatible with all projects and the website
-  JAVA_VERSION: "17"
+  JAVA_VERSION: "21"
   JAVA_DISTRO: "adopt"
   JAVA_PACKAGE: "jdk"
   MAVEN_PARMS: "-B -U -V --settings .github/settings.xml --file pom.xml"
